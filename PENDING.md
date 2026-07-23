@@ -63,11 +63,14 @@ don't need packing.
 
 ## Deliberate heuristic ceilings (documented in code with `ponytail:` comments)
 
-- **`ScalarQuantCodec` mixed-precision groups by LAYER only**
-  (`codec/scalar_quant.py`). `BitWidthMap` fully supports per-head overrides
-  and is tested independently, but the codec's actual quantization path only
-  consults `bits_for_layer`, not per-head bits. A future head-granular codec
-  can consume the existing head-override data without a schema change.
+- **`ScalarQuantCodec` mixed-precision** (`codec/scalar_quant.py`) groups by
+  LAYER on the fast path (byte-identical to the original implementation) and
+  automatically switches to per-(layer, head) **cell grouping** when the
+  `BitWidthMap` carries head-level overrides for that tensor, so individual
+  heads can now carry distinct bit-widths. Each cell is quantized as a
+  single-head slice, so `PER_HEAD` and `PER_TENSOR` granularity coincide
+  within a cell (one scale per head). Tested:
+  `test_head_override_uses_cell_grouping_and_distinct_bits_per_head`.
 - **`language_hint` is always `None`** (`unicode_grouping`). No language-ID model
   is wired in; the field exists in the schema but is never populated. It is also
   intentionally forbidden from entering fragility scoring (see leakage.py).
@@ -103,11 +106,15 @@ don't need packing.
   `test_prop2_allocation.py`): pending, depend on Allocation module.
 - **Remaining spec modules not yet built** (empty/partial stubs):
   - `pruning` - partial (top-k baseline exists; policy layer pending)
-  - `quantization` - strong scalar suite complete (Prompt 6: INT8/INT4,
+  - `quantization` - scalar suite complete (Prompt 6: INT8/INT4,
     symmetric/asymmetric, per-tensor/head/channel/groupwise, percentile/
-    MSE-optimal clipping, mixed precision); vector quantization (LBG/k-means
-    codebooks) still pending, explicitly out of scope per Prompt 6's own
-    acceptance gate ("codec remains functional without LBG")
+    MSE-optimal clipping, mixed precision incl. genuine per-head bits) AND
+    LBG vector quantization complete (Prompt 7: `quantization/vector_quant.py`
+    + `codec/vector_quant.py` - deterministic LBG training, head-block/
+    cross-token vector formation, global/per-layer/per-head codebook scopes,
+    chunked nearest-codeword with optional FAISS, serialized+counted codebook
+    overhead, scalar-vs-LBG matched-bits benchmark `lbg_benchmark/`).
+    Product/residual VQ (Prompt 7 item 49, optional) still pending.
   - `allocation` - empty (consumes fragility cohorts; blocked on Gate 1
     WEAK_PASS caveat above)
   - `metadata_coding` - empty (Golomb-Rice / entropy coding, later prompt)

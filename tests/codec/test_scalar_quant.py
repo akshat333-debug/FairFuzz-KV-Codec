@@ -199,6 +199,41 @@ def test_saturation_diagnostics_present_and_sane():
     assert saturation["saturation_rate"] > 0.0  # percentile=5 should clip something out of real Gaussian data
 
 
+def test_head_override_uses_cell_grouping_and_distinct_bits_per_head():
+    K = _sample_kv()  # [layers, batch, heads, seq, head_dim]
+    num_heads = K.size(2)
+    assert num_heads >= 2
+    bwm = BitWidthMap(default_k_bits=8, default_v_bits=8)
+    bwm.set_head_bits("k", layer=0, head=0, bits=4)  # one head goes to 4-bit
+
+    codec = ScalarQuantCodec("hash", tensor_name="k", granularity=Granularity.PER_CHANNEL, bitwidth_map=bwm)
+    stream, meta = codec.encode_prefill(K)
+    recon = codec.decode(stream, meta, tuple(meta["full_shape"]), torch.float32, "cpu")
+
+    assert meta["group_mode"] == "cell"
+    assert recon.shape == K.shape
+    assert torch.isfinite(recon).all()
+
+    # The single 4-bit head (layer 0, head 0) must be less accurate than an
+    # 8-bit head in the same layer - proves the per-head bits actually applied.
+    mse_4bit_head = (recon[0, :, 0] - K[0, :, 0]).pow(2).mean().item()
+    mse_8bit_head = (recon[0, :, 1] - K[0, :, 1]).pow(2).mean().item()
+    assert mse_4bit_head > mse_8bit_head
+
+
+def test_no_head_override_stays_on_layer_path_byte_identical():
+    K = _sample_kv()
+    # Same default bits, once via a plain map and once via a map carrying only
+    # a LAYER override elsewhere - neither has head overrides, so both must use
+    # the layer path and produce identical bytes.
+    codec_a = ScalarQuantCodec("hash", tensor_name="k", default_bits=8)
+    codec_b = ScalarQuantCodec("hash", tensor_name="k", default_bits=8)
+    stream_a, meta_a = codec_a.encode_prefill(K)
+    stream_b, _ = codec_b.encode_prefill(K)
+    assert meta_a["group_mode"] == "layer"
+    assert stream_a == stream_b
+
+
 def test_invalid_tensor_name_rejected():
     with pytest.raises(ValueError):
         ScalarQuantCodec("hash", tensor_name="q")

@@ -34,10 +34,10 @@ class BitWidthMap(BaseModel):
 
     def bits_for_layer(self, tensor_name: str, layer: int) -> int:
         """Layer-level lookup only, ignoring any head-level override. This is
-        what ScalarQuantCodec actually consults - its current implementation
-        groups by layer, not by individual head (see quantization/scalar_quant.py
-        docstring). Head-level overrides remain part of the schema for a
-        future head-granular codec, but are not consumed by that path yet."""
+        what ScalarQuantCodec consults on its fast LAYER path (used when the
+        map has no head overrides for this tensor). When head overrides ARE
+        present the codec switches to per-(layer, head) cell grouping and
+        consults bits_for(tensor, layer, head) instead."""
         if tensor_name not in ("k", "v"):
             raise ValueError(f"tensor_name must be 'k' or 'v', got {tensor_name!r}")
         overrides = self.k_overrides if tensor_name == "k" else self.v_overrides
