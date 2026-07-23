@@ -105,7 +105,12 @@ don't need packing.
 - **Propositions 1 & 2** (`tests/eval/test_prop1_fragility.py`,
   `test_prop2_allocation.py`): pending, depend on Allocation module.
 - **Remaining spec modules not yet built** (empty/partial stubs):
-  - `pruning` - partial (top-k baseline exists; policy layer pending)
+  - `pruning` - COMPLETE (Prompt 9: recency/top-attention-mass/top-k/group-
+    aware selectors, max/sum/normalized group aggregation, attention-mass
+    repair contract with local `p_E^repair <= p_E^0 + delta` enforcement +
+    per-head/query logging, local per-head bound validator that reports
+    assumption failures). Local head-level verification ONLY - not an
+    end-to-end guarantee (CLAIMS_LEDGER C-18/C-19).
   - `quantization` - scalar suite complete (Prompt 6: INT8/INT4,
     symmetric/asymmetric, per-tensor/head/channel/groupwise, percentile/
     MSE-optimal clipping, mixed precision incl. genuine per-head bits) AND
@@ -115,10 +120,27 @@ don't need packing.
     chunked nearest-codeword with optional FAISS, serialized+counted codebook
     overhead, scalar-vs-LBG matched-bits benchmark `lbg_benchmark/`).
     Product/residual VQ (Prompt 7 item 49, optional) still pending.
-  - `allocation` - empty (consumes fragility cohorts; blocked on Gate 1
-    WEAK_PASS caveat above)
-  - `metadata_coding` - empty (Golomb-Rice / entropy coding, later prompt)
-  - `decoder` - empty (full reconstruction path, later prompt)
+  - `allocation` - COMPLETE as the AGGREGATE control condition (Prompt 10:
+    train/val/test-separated distortion calibration, exp/monotone distortion
+    curves, exact-DP + greedy water-filling allocator with optimality-gap
+    validation, drives the real ScalarQuantCodec, `allocation_study/`
+    artifacts). Deliberately framed as a heuristic aggregate baseline, NOT
+    premised on the Gate-1 causal claim (WEAK_PASS caveat above). The
+    FAIRNESS/cohort-conditioned allocator that must BEAT this control is the
+    later-prompt deliverable and remains pending.
+  - `metadata_coding` - COMPLETE (Prompt 8: FFKV binary format v1 container
+    with CRC32 checksums + forward-compat section skipping, Golomb-Rice
+    retention coding with bitmap/RLE fallback chosen by measured length,
+    blockwise-Rice integer coders, LEB128 varints, `FORMAT.md` + golden
+    vectors). Streaming/incremental append across decode steps not wired
+    (prefill-regime container only); a future decode-regime writer can add
+    sections without a format change (forward-compat directory already
+    supports it).
+  - `decoder` - COMPLETE for container reconstruction (Prompt 8:
+    `decode_from_container` rebuilds scalar OR LBG payloads with a
+    completeness report). Direct model-injection generation loop remains the
+    version-sensitive path already covered by the attention-equivalence
+    harness (Prompt 2), not this container decoder.
   - `experiment_tracking` - empty
 
 ## Verification status (through Prompt 6)

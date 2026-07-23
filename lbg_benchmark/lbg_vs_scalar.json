@@ -1,0 +1,164 @@
+{
+  "long_corpus": [
+    {
+      "codec": "INT8-per_channel",
+      "family": "scalar",
+      "eff_bits_per_element": 8.07281037414966,
+      "mse": 0.012976338155567646,
+      "encode_ms": 64.01366699719802
+    },
+    {
+      "codec": "INT4-per_channel",
+      "family": "scalar",
+      "eff_bits_per_element": 4.07281037414966,
+      "mse": 1.6322835683822632,
+      "encode_ms": 10.035041952505708
+    },
+    {
+      "codec": "LBG-vd4-cb16",
+      "family": "lbg",
+      "vector_dim": 4,
+      "codebook_size": 16,
+      "eff_bits_per_element": 2.0399659863945576,
+      "mse": 9.518671035766602,
+      "encode_ms": 140.13183303177357,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    },
+    {
+      "codec": "LBG-vd4-cb256",
+      "family": "lbg",
+      "vector_dim": 4,
+      "codebook_size": 256,
+      "eff_bits_per_element": 2.244153911564626,
+      "mse": 0.7276222109794617,
+      "encode_ms": 641.0215829964727,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    },
+    {
+      "codec": "LBG-vd8-cb16",
+      "family": "lbg",
+      "vector_dim": 8,
+      "codebook_size": 16,
+      "eff_bits_per_element": 1.0535714285714286,
+      "mse": 11.169453620910645,
+      "encode_ms": 43.8851669896394,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    },
+    {
+      "codec": "LBG-vd8-cb256",
+      "family": "lbg",
+      "vector_dim": 8,
+      "codebook_size": 256,
+      "eff_bits_per_element": 1.4618409863945578,
+      "mse": 1.5802544355392456,
+      "encode_ms": 260.1224999525584,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    },
+    {
+      "codec": "LBG-vd16-cb16",
+      "family": "lbg",
+      "vector_dim": 16,
+      "codebook_size": 16,
+      "eff_bits_per_element": 0.58078231292517,
+      "mse": 10.147271156311035,
+      "encode_ms": 22.153624973725528,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    },
+    {
+      "codec": "LBG-vd16-cb256",
+      "family": "lbg",
+      "vector_dim": 16,
+      "codebook_size": 256,
+      "eff_bits_per_element": 1.3972151360544218,
+      "mse": 2.213423013687134,
+      "encode_ms": 115.18333299318328,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    }
+  ],
+  "small_corpus": [
+    {
+      "codec": "INT8-per_channel",
+      "family": "scalar",
+      "eff_bits_per_element": 61.041666666666664,
+      "mse": 0.004758530296385288,
+      "encode_ms": 179.88291603978723
+    },
+    {
+      "codec": "INT4-per_channel",
+      "family": "scalar",
+      "eff_bits_per_element": 56.5,
+      "mse": 0.18041777610778809,
+      "encode_ms": 14.612708007916808
+    },
+    {
+      "codec": "LBG-vd4-cb16",
+      "family": "lbg",
+      "vector_dim": 4,
+      "codebook_size": 16,
+      "eff_bits_per_element": 32.916666666666664,
+      "mse": 4.668315410614014,
+      "encode_ms": 93.49804098019376,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    },
+    {
+      "codec": "LBG-vd4-cb256",
+      "family": "lbg",
+      "vector_dim": 4,
+      "codebook_size": 256,
+      "eff_bits_per_element": Infinity,
+      "mse": NaN,
+      "infeasible": "need at least codebook_size (256) vectors, got 48"
+    },
+    {
+      "codec": "LBG-vd8-cb16",
+      "family": "lbg",
+      "vector_dim": 8,
+      "codebook_size": 16,
+      "eff_bits_per_element": 42.583333333333336,
+      "mse": 1.6050487756729126,
+      "encode_ms": 2.316500002052635,
+      "utilization": 1.0,
+      "dead_codewords": 0
+    },
+    {
+      "codec": "LBG-vd8-cb256",
+      "family": "lbg",
+      "vector_dim": 8,
+      "codebook_size": 256,
+      "eff_bits_per_element": Infinity,
+      "mse": NaN,
+      "infeasible": "need at least codebook_size (256) vectors, got 24"
+    },
+    {
+      "codec": "LBG-vd16-cb16",
+      "family": "lbg",
+      "vector_dim": 16,
+      "codebook_size": 16,
+      "eff_bits_per_element": Infinity,
+      "mse": NaN,
+      "infeasible": "need at least codebook_size (16) vectors, got 12"
+    },
+    {
+      "codec": "LBG-vd16-cb256",
+      "family": "lbg",
+      "vector_dim": 16,
+      "codebook_size": 256,
+      "eff_bits_per_element": Infinity,
+      "mse": NaN,
+      "infeasible": "need at least codebook_size (256) vectors, got 12"
+    }
+  ],
+  "finding_small_corpus_lbg_worse_than_int4": [
+    "LBG-vd4-cb256",
+    "LBG-vd8-cb256",
+    "LBG-vd16-cb16",
+    "LBG-vd16-cb256"
+  ]
+}
