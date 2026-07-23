@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "dataset_name": "FragKV-MinPairs",
+  "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+  "num_groups": 200,
+  "fragmentation_levels": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "generation_seed": 42,
+  "split_hash": "56f325e45ea064dcbf2ce759c4889d76fc02b0ebdac8a0c099c0e1c29c2b3c6b",
+  "transformation_counts": {
+    "digit": 200,
+    "digit_dot": 200,
+    "word_zwnj_letters": 123,
+    "word_double_sep_letters": 51,
+    "word_hyphen_letters": 149,
+    "word_zwnj_fullwidth_letters": 77
+  },
+  "difficulty_counts": {
+    "easy": 70,
+    "hard": 73,
+    "medium": 57
+  },
+  "token_count_tolerance": {
+    "1": 0,
+    "2": 0,
+    "4": 1,
+    "8": 1
+  },
+  "notes": "Canonical evidence values are single digits 0-9 (see numeric_forms.py). n_g=1/2 hit their token-count target exactly for every digit; n_g=4/8 are matched within +-1 token (empirically verified against this tokenizer, not assumed) - see token_count_tolerance."
+}

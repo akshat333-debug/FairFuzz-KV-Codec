@@ -1,0 +1,61 @@
+{
+  "decision": "WEAK_PASS",
+  "control_result": {
+    "codec_name": "FullKV",
+    "low_n_g": 1,
+    "high_n_g": 8,
+    "n_paired_groups": 200,
+    "accuracy_by_n_g": {
+      "1": 0.48,
+      "2": 0.665,
+      "4": 0.025,
+      "8": 0.0
+    },
+    "effect_size": 0.48,
+    "ci_low": 0.41,
+    "ci_high": 0.545,
+    "p_value": 0.0,
+    "monotonic_non_increasing": false,
+    "power_note": "n=200 paired groups - adequately powered for a >=10-point effect at conventional alpha."
+  },
+  "lossy_results": [
+    {
+      "codec_name": "TopK50",
+      "low_n_g": 1,
+      "high_n_g": 8,
+      "n_paired_groups": 200,
+      "accuracy_by_n_g": {
+        "1": 0.105,
+        "2": 0.1,
+        "4": 0.045,
+        "8": 0.03
+      },
+      "effect_size": 0.075,
+      "ci_low": 0.04,
+      "ci_high": 0.11,
+      "p_value": 0.0004,
+      "monotonic_non_increasing": true,
+      "power_note": "n=200 paired groups - adequately powered for a >=10-point effect at conventional alpha."
+    },
+    {
+      "codec_name": "UniformQuant8",
+      "low_n_g": 1,
+      "high_n_g": 8,
+      "n_paired_groups": 200,
+      "accuracy_by_n_g": {
+        "1": 0.825,
+        "2": 0.85,
+        "4": 0.015,
+        "8": 0.005
+      },
+      "effect_size": 0.82,
+      "ci_low": 0.765,
+      "ci_high": 0.87,
+      "p_value": 0.0,
+      "monotonic_non_increasing": false,
+      "power_note": "n=200 paired groups - adequately powered for a >=10-point effect at conventional alpha."
+    }
+  ],
+  "control_confound": true,
+  "reasoning": "1 lossy codec(s) show a directionally consistent effect between 3% and 10% - real signal, but below the practically-meaningful bar."
+}

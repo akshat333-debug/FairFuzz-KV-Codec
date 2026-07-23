@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    environment:
+      - UV_COMPILE_BYTECODE=1
+    command: ["uv", "run", "fairfuzzkv", "inspect"]

@@ -1,0 +1,127 @@
+{
+  "kv_distortion": [
+    {
+      "series_name": "K",
+      "config": "INT8-per_channel",
+      "bits_per_element": 8.09743923611111,
+      "mse": 0.012937073595821857,
+      "normalized_l2": 0.011747133977120343,
+      "cosine_drift": 3.898143768310547e-05,
+      "attention_output_mse": 0.0005450155003927648
+    },
+    {
+      "series_name": "V",
+      "config": "INT8-per_channel",
+      "bits_per_element": 8.09743923611111,
+      "mse": 0.00031420247978530824,
+      "normalized_l2": 0.019551195050995056,
+      "cosine_drift": 0.00019049644470214844
+    },
+    {
+      "series_name": "K",
+      "config": "INT8-per_tensor",
+      "bits_per_element": 8.059461805555555,
+      "mse": 0.23420566320419312,
+      "normalized_l2": 0.04998199613400244,
+      "cosine_drift": 0.0012431144714355469,
+      "attention_output_mse": 0.009698047302663326
+    },
+    {
+      "series_name": "V",
+      "config": "INT8-per_tensor",
+      "bits_per_element": 8.059461805555555,
+      "mse": 0.0008005560957826674,
+      "normalized_l2": 0.03120788389667968,
+      "cosine_drift": 0.00047963857650756836
+    },
+    {
+      "series_name": "K",
+      "config": "INT4-per_channel",
+      "bits_per_element": 4.097439236111111,
+      "mse": 1.6080158948898315,
+      "normalized_l2": 0.13096611686825385,
+      "cosine_drift": 0.008530795574188232,
+      "attention_output_mse": 0.053113117814064026
+    },
+    {
+      "series_name": "V",
+      "config": "INT4-per_channel",
+      "bits_per_element": 4.097366898148148,
+      "mse": 0.08753009885549545,
+      "normalized_l2": 0.3263223374677102,
+      "cosine_drift": 0.05100017786026001
+    },
+    {
+      "series_name": "K",
+      "config": "INT4-groupwise16",
+      "bits_per_element": 4.060980902777778,
+      "mse": 5.323794364929199,
+      "normalized_l2": 0.23830034937129393,
+      "cosine_drift": 0.02840721607208252,
+      "attention_output_mse": 0.06524676829576492
+    },
+    {
+      "series_name": "V",
+      "config": "INT4-groupwise16",
+      "bits_per_element": 4.060980902777778,
+      "mse": 0.15495920181274414,
+      "normalized_l2": 0.43418746330221325,
+      "cosine_drift": 0.08994674682617188
+    },
+    {
+      "series_name": "K",
+      "config": "INT4-per_tensor",
+      "bits_per_element": 4.059461805555555,
+      "mse": 6.863291263580322,
+      "normalized_l2": 0.27057003295363335,
+      "cosine_drift": 0.03619354963302612,
+      "attention_output_mse": 0.06309068202972412
+    },
+    {
+      "series_name": "V",
+      "config": "INT4-per_tensor",
+      "bits_per_element": 4.059461805555555,
+      "mse": 0.18515647947788239,
+      "normalized_l2": 0.47461133115303394,
+      "cosine_drift": 0.10814660787582397
+    }
+  ],
+  "task_accuracy": [
+    {
+      "series_name": "task",
+      "config": "INT8-per_channel",
+      "bits_per_element": 8.061791887796783,
+      "accuracy": 0.78,
+      "task_distortion": 0.21999999999999997
+    },
+    {
+      "series_name": "task",
+      "config": "INT8-per_tensor",
+      "bits_per_element": 8.03779630940315,
+      "accuracy": 0.84,
+      "task_distortion": 0.16000000000000003
+    },
+    {
+      "series_name": "task",
+      "config": "INT4-per_channel",
+      "bits_per_element": 4.061780962158434,
+      "accuracy": 0.18,
+      "task_distortion": 0.8200000000000001
+    },
+    {
+      "series_name": "task",
+      "config": "INT4-groupwise16",
+      "bits_per_element": 4.038867079077615,
+      "accuracy": 0.08,
+      "task_distortion": 0.92
+    },
+    {
+      "series_name": "task",
+      "config": "INT4-per_tensor",
+      "bits_per_element": 4.037802443866737,
+      "accuracy": 0.06,
+      "task_distortion": 0.94
+    }
+  ],
+  "elapsed_seconds": 144.6488540172577
+}
