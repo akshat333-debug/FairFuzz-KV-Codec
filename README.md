@@ -2,14 +2,14 @@
 
 FairFuzzKV-Codec is a research project for memory-conscious compression of Key-Value (KV) caches in Large Language Models.
 
-## Current Project Status: Scalar Quantization Suite Complete (Prompts 1-6)
+## Current Project Status: Minimax Fairness Allocator Complete (Prompts 1-11)
 
-We are actively building the infrastructure and baseline evaluation pipeline. The repository has completed the **Vertical Skeleton Initialization**, the **Grade-Floor Baseline Gate**, the **Unicode-Aware Group Mapper (Module 1)**, the **Tokenizer Fragility Estimator & Cohort Builder (Module 2)**, the **FragKV-MinPairs Gate 1 Causal Test (Prompt 5)**, and the **Scalar Quantization Suite (Prompt 6)**.
+We are actively building the infrastructure and baseline evaluation pipeline. The repository has completed the **Vertical Skeleton Initialization**, the **Grade-Floor Baseline Gate**, the **Unicode-Aware Group Mapper (Module 1)**, the **Tokenizer Fragility Estimator & Cohort Builder (Module 2)**, the **FragKV-MinPairs Gate 1 Causal Test (Prompt 5)**, the **Scalar Quantization Suite (Prompt 6)**, **LBG Vector Quantization (Prompt 7)**, the **Unified Binary Format + Golomb-Rice Metadata Coding + Streaming Decoder (Prompt 8)**, **Pruning Selectors + Attention-Mass Repair + Local Bound Validation (Prompt 9)**, the **Aggregate Rate-Distortion Allocator (Prompt 10)**, and the **Fairness-Constrained Minimax Water-Filling Allocator (Prompt 11)**.
 
 > See [PENDING.md](PENDING.md) for the honest list of known gaps, deferred scope, and heuristic ceilings.
-> **Read [gate1_study/GATE1_REPORT.md](gate1_study/GATE1_REPORT.md) before building Allocation** - Gate 1 came back **WEAK_PASS**, not PASS: fragmentation shows only a small, confound-entangled effect on compression failure at this model scale.
+> **Read [gate1_study/GATE1_REPORT.md](gate1_study/GATE1_REPORT.md) and [ALLOCATION_MATH.md](ALLOCATION_MATH.md) before relying on allocation** - Gate 1 came back **WEAK_PASS**, not PASS: fragmentation shows only a small, confound-entangled effect on compression failure at this model scale, so the allocators are framed as engineering controls, not validated causal-fairness claims.
 
-**Completed through Prompt 6.** Verification: 231/231 tests pass, `ruff` and `mypy` clean, all six prompt deliverables run end-to-end, Docker image builds and runs the CLI. Prompts 1-2 (grade-floor codec + honest byte accounting), 3 (Module 1: Unicode grouping), 4 (Module 2: fragility cohorts), 5 (Gate 1 causal test → WEAK_PASS), 6 (scalar quantization suite).
+**Completed through Prompt 11.** Verification: 313 tests pass, `ruff` and `mypy` clean, all deliverables run end-to-end on a real captured Qwen2.5-0.5B cache, Docker image builds and runs the CLI. The Gate-1 200-group causal study was re-run from scratch on the real model and reproduced the committed result exactly (2400 predictions, WEAK_PASS).
 
 ### What has been implemented so far:
 
@@ -65,8 +65,25 @@ We are actively building the infrastructure and baseline evaluation pipeline. Th
    - Two real bugs caught and fixed during development via the benchmark run itself, not just unit tests — see RISK_REGISTER R-07/R-08.
    - Fully standalone: no dependency on fragility cohorts, LBG/vector quantization, or fairness allocation, per this prompt's own acceptance gate.
 
+9. **Prompt 7 — LBG Vector Quantization** (`fairfuzzkv_codec.quantization.vector_quant`, `fairfuzzkv_codec.codec.vector_quant.LBGVectorQuantCodec`)
+   - Deterministic Linde-Buzo-Gray/k-means codebook training (split perturbation, empty-cluster recovery, mini-batch), head-block and cross-token vector formation, global/per-layer/per-head codebook scopes, calibration-fit leakage guard, chunked nearest-codeword with an optional FAISS path behind a CPU-authoritative interface.
+   - Codebook overhead is serialized and fully counted; scalar-vs-LBG matched-total-bit benchmark in [lbg_benchmark/](lbg_benchmark/), which honestly reports small-corpus cases where codebook overhead makes VQ worse.
+
+10. **Prompt 8 — Unified Binary Format, Golomb-Rice Metadata Coding, Streaming Decoder** (`fairfuzzkv_codec.metadata_coding`, `fairfuzzkv_codec.decoder`)
+    - FairFuzzKV binary format v1: magic/version/endianness, geometry + tokenizer-hash header, section directory, CRC32 checksums, forward-compatible unknown-section skipping, safe rejection of corrupt/truncated/fuzzed input. Byte-level spec + golden vectors in [FORMAT.md](FORMAT.md).
+    - Golomb-Rice retention coding (blockwise-adaptive Rice over sorted gaps) with bitmap and run-length fallbacks chosen by *measured* length; blockwise-Rice integer coders for indices/bit-width maps/cohort IDs; container decodes both scalar and LBG payloads.
+
+11. **Prompt 9 — Pruning Selectors, Attention-Mass Repair, Local Bound** (`fairfuzzkv_codec.pruning`)
+    - Recency / top-attention-mass / top-k-score / group-aware selectors (quantization-independent); coherent surface-group retention; attention-mass repair contract enforcing a **local** `p_E^repair ≤ p_E^0 + δ` per audited head/query with full accept/reject logging; local per-head bound validator `‖O−Ô‖₂ ≤ 2·M·p_E` that reports assumption failures instead of manufacturing a pass. **Local head-level only — not an end-to-end guarantee.**
+
+12. **Prompt 10 — Aggregate Rate-Distortion Allocator** (`fairfuzzkv_codec.allocation`) — the Gate-2 control condition
+    - Train/val/test-separated per-cohort distortion calibration (scalar + LBG options), exp/monotone distortion curves, exact-DP + greedy water-filling allocator validated by optimality gap, driving the real `ScalarQuantCodec`. Live study in [allocation_study/](allocation_study/).
+
+13. **Prompt 11 — Fairness-Constrained Minimax Allocator** (`fairfuzzkv_codec.allocation.minimax`)
+    - Minimizes the worst-cohort distortion at a fixed complete bit budget. Continuous water-filling derived from KKT conditions ([ALLOCATION_MATH.md](ALLOCATION_MATH.md); the optimum equalizes achieved **distortion**, not beta) projected to discrete scalar/LBG choices, with an exact epigraph reference solver. Reports worst/average distortion, the Pareto frontier (cost of fairness), and allocation shifts vs the aggregate control. Frozen setup in [GATE2_CONFIG.md](GATE2_CONFIG.md); live study in [gate2_study/](gate2_study/).
+
 ### Next Steps:
-- **Allocation (Module, Prompt 7+):** per Gate 1's WEAK_PASS result, do not premise allocation on "fragmentation causally requires protection" without re-reading `gate1_study/GATE1_REPORT.md`'s caveats first.
+- **Cohort-conditioned fairness (later prompts):** tie the minimax allocator to fragility-derived cohorts / codebooks. Per Gate 1's WEAK_PASS result, do not premise this on "fragmentation causally requires protection" without re-reading `gate1_study/GATE1_REPORT.md`'s caveats first — keep the framing as an engineering control.
 
 ## Usage
 

@@ -126,8 +126,13 @@ don't need packing.
     validation, drives the real ScalarQuantCodec, `allocation_study/`
     artifacts). Deliberately framed as a heuristic aggregate baseline, NOT
     premised on the Gate-1 causal claim (WEAK_PASS caveat above). The
-    FAIRNESS/cohort-conditioned allocator that must BEAT this control is the
-    later-prompt deliverable and remains pending.
+    FAIRNESS-constrained MINIMAX allocator that protects the worst cohort vs
+    this aggregate control is now implemented (Prompt 11: `allocation/minimax.py`,
+    `ALLOCATION_MATH.md`, frozen `GATE2_CONFIG.md`, `gate2_study/`). At a generous
+    midpoint budget the two coincide (no cohort tension); the Pareto sweep shows
+    where fairness trades average distortion to lower the worst case - reported,
+    not hidden. Cohort-conditioned CODEBOOKS driven by fragility (tying minimax
+    to Module 2 cohorts) remain a later-prompt deliverable.
   - `metadata_coding` - COMPLETE (Prompt 8: FFKV binary format v1 container
     with CRC32 checksums + forward-compat section skipping, Golomb-Rice
     retention coding with bitmap/RLE fallback chosen by measured length,

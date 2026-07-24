@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from fairfuzzkv_codec.allocation.calibration import (
+    calibrate_layers_mixed,
     calibrate_layers_scalar,
     encode_with_allocation,
     make_split,
@@ -71,6 +72,18 @@ def test_calibration_produces_cohorts_with_bit_options():
         # 8-bit costs more bits and distorts less than 4-bit (on real data).
         assert int8.total_bits > int4.total_bits
         assert int8.distortion <= int4.distortion
+
+
+def test_mixed_calibration_includes_scalar_and_lbg_options():
+    K = _sample_kv()
+    cohorts = calibrate_layers_mixed(K, scalar_bits=[4, 8], lbg_configs=[(8, 16)])
+    assert len(cohorts) == 3
+    for c in cohorts:
+        labels = {o.label for o in c.options}
+        assert "int4" in labels and "int8" in labels
+        assert any(lbl.startswith("lbg_") for lbl in labels)  # LBG option present
+        for o in c.options:
+            assert o.total_bits > 0  # codebook overhead counted, nothing free
 
 
 def test_allocation_drives_the_real_encoder_within_budget():
