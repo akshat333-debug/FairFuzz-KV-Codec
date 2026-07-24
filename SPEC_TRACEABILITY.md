@@ -15,6 +15,8 @@ This document maps the frozen specification components to concrete code paths.
 8. **Decoder/Reconstruction**: `fairfuzzkv_codec.decoder` (Prompt 8). `reconstruct.py`: `encode_to_container` / `decode_from_container` wrap either a scalar or LBG codec payload in an FFK1 container and reconstruct the cache tensor, with a `CompletenessReport` diagnostic (shape check, section presence). Tested in `tests/decoder/`.
 9. **FragKV-MinPairs / Gate 1 Causal Test**: `fairfuzzkv_codec.benchmarks.fragkv_minpairs` (dataset generator, validators, immutable split hash, pre-registered Gate 1 decision logic, real-model runner via KV-cache splicing). Tested in `tests/benchmarks/fragkv_minpairs/`. Real 200-group study result: `gate1_study/GATE1_REPORT.md` (**WEAK_PASS** - see RISK_REGISTER R-06 and CLAIMS_LEDGER C-11).
 
+10. **Gate 2 (Matched-Bit Fairness Experiment)**: `fairfuzzkv_codec.evaluation.disparity` / `.isolation` / `.gate2` (Prompt 12). Intersection-full-correct isolation subset, compression-induced degradation `Delta_{l,B}`, robust disparity metrics (CDDB = bounded std, absolute range, worst-group drop, mean, guarded ratio, risk-coverage), paired bootstrap CIs, and a PRE-REGISTERED PASS/WEAK_PASS/FAIL decision (frozen thresholds, tested on synthetic fixtures before the real run). Real pilot study: `scripts/run_gate2_study.py` → `gate2_fairness_study/GATE2_REPORT.md` (**FAIL** at pilot scale — negative evidence, see RISK_REGISTER R-09 / CLAIMS_LEDGER C-21). Frozen config: `GATE2_CONFIG.md`. Tested in `tests/evaluation/test_gate2.py`.
+
 ## Propositions
 - **Proposition 1 (Fragility Distribution)**: Tested in `tests/eval/test_prop1_fragility.py` (Pending)
 - **Proposition 2 (Allocation Optimality)**: Tested in `tests/eval/test_prop2_allocation.py` (Pending)

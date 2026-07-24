@@ -133,6 +133,16 @@ don't need packing.
     where fairness trades average distortion to lower the worst case - reported,
     not hidden. Cohort-conditioned CODEBOOKS driven by fragility (tying minimax
     to Module 2 cohorts) remain a later-prompt deliverable.
+  - `evaluation` Gate 2 (Prompt 12) - COMPLETE machinery, **FAIL** result.
+    Isolation subset, robust disparity metrics (CDDB/range/std/worst/risk-
+    coverage), paired bootstrap, frozen PASS/WEAK_PASS/FAIL logic (tested
+    pre-run). Real pilot `gate2_fairness_study/`: aggregate and minimax chose
+    identical allocations (zero fairness benefit) and isolation kept only
+    n_g=1,2 (n_g=4,8 have ~0 base-correct - same Gate-1 confound). Reported as
+    negative evidence (RISK_REGISTER R-09), codec preserved, no fabricated
+    fairness claim. A properly powered re-test needs naturalistic high-frag
+    renderings / larger model AND a heterogeneous cohort set whose degradation
+    curves diverge - then re-run the unchanged frozen decision logic.
   - `metadata_coding` - COMPLETE (Prompt 8: FFKV binary format v1 container
     with CRC32 checksums + forward-compat section skipping, Golomb-Rice
     retention coding with bitmap/RLE fallback chosen by measured length,
