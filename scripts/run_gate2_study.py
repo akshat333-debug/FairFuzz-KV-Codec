@@ -47,26 +47,8 @@ def _accuracy_by_cohort(fragkv_records) -> Dict[str, Dict[str, float]]:
     return {c: {k: sum(v) / len(v) for k, v in d.items()} for c, d in agg.items()}
 
 
-def main() -> None:
-    p = argparse.ArgumentParser()
-    p.add_argument("--num-groups", type=int, default=24)
-    p.add_argument("--budget-bits", type=int, default=6, help="per-cohort avg bit budget (between 4 and 8)")
-    p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--output-dir", type=str, default="gate2_fairness_study")
-    args = p.parse_args()
-
-    out = Path(args.output_dir)
-    out.mkdir(parents=True, exist_ok=True)
-
-    runner = FragKVRunner(MODEL_NAME)
-    ch = runner.config_hash
-    tok = AutoTokenizer.from_pretrained(MODEL_NAME)
-    groups = generate_validated_dataset(args.num_groups, tok, seed=args.seed)
-    half = len(groups) // 2
-    calib_groups, eval_groups = groups[:half], groups[half:]
-    print(f"groups: {len(groups)} (calib {len(calib_groups)}, eval {len(eval_groups)})")
-
-    # ---- calibration: per-cohort degradation for INT4/INT8 -----------------
+def _calibrate_cohorts(runner: FragKVRunner, ch: str, calib_groups) -> List[Cohort]:
+    """Per-cohort INT4/INT8 degradation curves from the calibration split."""
     calib_codecs = [
         ("FullKV", FullKVFP16Codec(ch)),
         ("int4", UniformQuantCodec(ch, num_bits=4)),
@@ -77,32 +59,33 @@ def main() -> None:
         for n_g in g.variants:
             calib_records.extend(runner.run_variant(g, n_g, calib_codecs))
     acc = _accuracy_by_cohort(calib_records)
-    cohorts_ids = sorted(acc["FullKV"].keys(), key=int)
-
     cohorts: List[Cohort] = []
-    for cid in cohorts_ids:
+    for cid in sorted(acc["FullKV"].keys(), key=int):
         full_acc = acc["FullKV"].get(cid, 1.0)
-        options = []
-        for bits in BIT_CHOICES:
-            sys_acc = acc[f"int{bits}"].get(cid, 0.0)
-            degradation = max(0.0, full_acc - sys_acc)
-            options.append(BitOption(label=f"int{bits}", total_bits=bits, distortion=degradation))
+        options = [
+            BitOption(label=f"int{b}", total_bits=b, distortion=max(0.0, full_acc - acc[f"int{b}"].get(cid, 0.0)))
+            for b in BIT_CHOICES
+        ]
         cohorts.append(Cohort(cohort_id=cid, options=options))
+    return cohorts
 
-    budget = args.budget_bits * len(cohorts)
+
+def _eval_one(
+    runner: FragKVRunner, ch: str, eval_groups, cohorts: List[Cohort],
+    budget: int, seed: int, tag: str,
+) -> tuple:
+    """Allocate at `budget`, apply per-cohort bits on the eval split, return
+    (records, RunComparison). example_ids are tagged unique per (seed, budget)."""
     aggregate = solve_exact(cohorts, budget)
     minimax = solve_minimax_exact(cohorts, budget)
     agg_choice = {c: aggregate.choice[c].label for c in aggregate.choice}
     mm_choice = {c: minimax.allocation.choice[c].label for c in minimax.allocation.choice}
-    print(f"budget={budget}  aggregate={agg_choice}  minimax={mm_choice}")
 
-    # ---- eval: apply each system's per-cohort bits on held-out groups -------
     def _codec_for(label: str) -> UniformQuantCodec:
         return UniformQuantCodec(ch, num_bits=int(label.replace("int", "")))
 
     records: List[PredictionRecord] = []
-    agg_bits_acc: List[float] = []
-    mm_bits_acc: List[float] = []
+    agg_bits, mm_bits = [], []
     for g in eval_groups:
         for n_g in g.variants:
             cid = str(n_g)
@@ -113,47 +96,82 @@ def main() -> None:
             ]
             for fr in runner.run_variant(g, n_g, eval_codecs):
                 records.append(PredictionRecord(
-                    example_id=f"{fr.group_id}_{n_g}", cohort=cid, system=fr.codec_name,
+                    example_id=f"{tag}_{fr.group_id}_{n_g}", cohort=cid, system=fr.codec_name,
                     correct=bool(fr.correct), bits_per_element=float(fr.actual_bits_per_element),
                 ))
                 if fr.codec_name == "aggregate":
-                    agg_bits_acc.append(fr.actual_bits_per_element)
+                    agg_bits.append(fr.actual_bits_per_element)
                 elif fr.codec_name == "minimax":
-                    mm_bits_acc.append(fr.actual_bits_per_element)
+                    mm_bits.append(fr.actual_bits_per_element)
 
-    # matched-bit check: both systems' realized mean bits/element within tolerance
-    agg_mean = sum(agg_bits_acc) / len(agg_bits_acc) if agg_bits_acc else 0.0
-    mm_mean = sum(mm_bits_acc) / len(mm_bits_acc) if mm_bits_acc else 0.0
-    matched_ok = abs(agg_mean - mm_mean) <= 0.5  # within half a bit/element
+    agg_mean = sum(agg_bits) / len(agg_bits) if agg_bits else 0.0
+    mm_mean = sum(mm_bits) / len(mm_bits) if mm_bits else 0.0
+    matched_ok = abs(agg_mean - mm_mean) <= 0.5
+    cmp = run_comparison_from_records(isolate(records), budget=budget, seed=seed, matched_bits_ok=matched_ok)
+    print(f"  seed={seed} budget={budget} agg={agg_choice} mm={mm_choice} "
+          f"bits(agg/mm)={agg_mean:.2f}/{mm_mean:.2f} benefit={cmp.fairness_benefit_worst:.4f}")
+    return records, cmp
 
-    # ---- isolate, compare, decide ------------------------------------------
-    iso = isolate(records)
+
+def main() -> None:
+    p = argparse.ArgumentParser()
+    p.add_argument("--num-groups", type=int, default=24)
+    p.add_argument("--budgets", type=str, default="5,6,7", help="comma list of per-cohort avg bit budgets in [4,8]")
+    p.add_argument("--seeds", type=str, default="42", help="comma list of dataset seeds")
+    p.add_argument("--output-dir", type=str, default="gate2_fairness_study")
+    args = p.parse_args()
+
+    budgets_bits = [int(x) for x in args.budgets.split(",")]
+    seeds = [int(x) for x in args.seeds.split(",")]
+    out = Path(args.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    runner = FragKVRunner(MODEL_NAME)
+    ch = runner.config_hash
+    tok = AutoTokenizer.from_pretrained(MODEL_NAME)
+
+    all_records: List[PredictionRecord] = []
+    runs = []
+    n_cohorts = 0
+    for seed in seeds:
+        groups = generate_validated_dataset(args.num_groups, tok, seed=seed)
+        half = len(groups) // 2
+        calib_groups, eval_groups = groups[:half], groups[half:]
+        cohorts = _calibrate_cohorts(runner, ch, calib_groups)
+        n_cohorts = max(n_cohorts, len(cohorts))
+        print(f"seed={seed}: {len(groups)} groups, {len(cohorts)} cohorts")
+        for bb in budgets_bits:
+            budget = bb * len(cohorts)
+            recs, cmp = _eval_one(runner, ch, eval_groups, cohorts, budget, seed, tag=f"s{seed}b{bb}")
+            all_records.extend(recs)
+            runs.append(cmp)
+
+    # pooled isolation + bootstrap across every (seed, budget) run
+    iso = isolate(all_records)
     ids = sorted({r.example_id for r in iso})
-    cmp = run_comparison_from_records(iso, budget=budget, seed=args.seed, matched_bits_ok=matched_ok)
-    point, lo, hi = paired_bootstrap_worst_benefit(iso, ids, n_boot=2000, seed=args.seed)
-    report = decide_gate2([cmp], ci_low=lo, ci_high=hi)
-
+    point, lo, hi = paired_bootstrap_worst_benefit(iso, ids, n_boot=2000, seed=seeds[0])
+    report = decide_gate2(runs, ci_low=lo, ci_high=hi)
     counts = cohort_counts(iso, "minimax")
+
+    print(f"\n=== {len(runs)} runs ({len(seeds)} seeds x {len(budgets_bits)} budgets) ===")
     print(f"isolated examples: {len(ids)}  cohort counts: {counts}")
-    print(f"matched bits: agg={agg_mean:.2f} mm={mm_mean:.2f} ok={matched_ok}")
-    print(f"worst-cohort fairness benefit={point:.4f}  CI[{lo:.4f},{hi:.4f}]")
+    print(f"pooled worst-cohort benefit={point:.4f}  CI[{lo:.4f},{hi:.4f}]")
+    print(f"directional consistency={report.directional_consistency:.0%}")
     print(f"DECISION: {report.decision.value}")
     print(report.reasoning)
 
-    # preserve raw predictions + report
     with open(out / "predictions.jsonl", "w") as f:
-        for r in records:
+        for r in all_records:
             f.write(json.dumps(r.__dict__) + "\n")
     (out / "GATE2_REPORT.json").write_text(json.dumps({
-        "num_groups": args.num_groups, "budget": budget,
-        "aggregate_choice": agg_choice, "minimax_choice": mm_choice,
-        "matched_bits": {"aggregate": agg_mean, "minimax": mm_mean, "ok": matched_ok},
-        "isolated_examples": len(ids), "cohort_counts": counts,
+        "num_groups": args.num_groups, "budgets_bits": budgets_bits, "seeds": seeds,
+        "n_runs": len(runs), "isolated_examples": len(ids), "cohort_counts": counts,
         "bootstrap": {"point": point, "ci_low": lo, "ci_high": hi},
+        "per_run": [r.__dict__ for r in runs],
         "report": report.to_dict(),
         "power_note": (
-            f"PILOT SCALE: {len(ids)} isolated examples across {len(cohorts)} cohorts. "
-            "Underpowered - treat the decision as provisional evidence, not a final verdict."
+            f"PILOT SCALE: {len(ids)} isolated examples across {n_cohorts} cohorts, "
+            f"{len(runs)} runs. Underpowered - provisional evidence, not a final verdict."
         ),
     }, indent=2))
     print(f"saved -> {out}/GATE2_REPORT.json, predictions.jsonl")

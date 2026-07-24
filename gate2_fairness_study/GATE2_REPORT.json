@@ -1,0 +1,134 @@
+{
+  "num_groups": 16,
+  "budgets_bits": [
+    5,
+    6,
+    7
+  ],
+  "seeds": [
+    42,
+    7
+  ],
+  "n_runs": 6,
+  "isolated_examples": 72,
+  "cohort_counts": {
+    "1": 27,
+    "2": 39,
+    "4": 6
+  },
+  "bootstrap": {
+    "point": 0.0,
+    "ci_low": 0.0,
+    "ci_high": 0.0
+  },
+  "per_run": [
+    {
+      "budget": 20,
+      "seed": 42,
+      "fairness_benefit_worst": 0.0,
+      "disparity_reduction_cddb": 0.0,
+      "aggregate_quality_cost": 0.0,
+      "matched_bits_ok": true
+    },
+    {
+      "budget": 24,
+      "seed": 42,
+      "fairness_benefit_worst": 0.0,
+      "disparity_reduction_cddb": 0.0,
+      "aggregate_quality_cost": 0.0,
+      "matched_bits_ok": true
+    },
+    {
+      "budget": 28,
+      "seed": 42,
+      "fairness_benefit_worst": 0.0,
+      "disparity_reduction_cddb": 0.0,
+      "aggregate_quality_cost": 0.0,
+      "matched_bits_ok": true
+    },
+    {
+      "budget": 20,
+      "seed": 7,
+      "fairness_benefit_worst": 0.0,
+      "disparity_reduction_cddb": 0.0,
+      "aggregate_quality_cost": 0.0,
+      "matched_bits_ok": true
+    },
+    {
+      "budget": 24,
+      "seed": 7,
+      "fairness_benefit_worst": 0.0,
+      "disparity_reduction_cddb": 0.0,
+      "aggregate_quality_cost": 0.0,
+      "matched_bits_ok": true
+    },
+    {
+      "budget": 28,
+      "seed": 7,
+      "fairness_benefit_worst": 0.0,
+      "disparity_reduction_cddb": 0.0,
+      "aggregate_quality_cost": 0.0,
+      "matched_bits_ok": true
+    }
+  ],
+  "report": {
+    "decision": "FAIL",
+    "reasoning": "minimax did not meaningfully reduce worst-cohort degradation (benefit 0.000, consistency 0%, cost 0.000). Codec is preserved; minimax is reported as NEGATIVE evidence for the fairness thesis, not a validated claim.",
+    "mean_fairness_benefit_worst": 0.0,
+    "mean_aggregate_quality_cost": 0.0,
+    "directional_consistency": 0.0,
+    "ci_low": 0.0,
+    "ci_high": 0.0,
+    "runs": [
+      {
+        "budget": 20,
+        "seed": 42,
+        "fairness_benefit_worst": 0.0,
+        "disparity_reduction_cddb": 0.0,
+        "aggregate_quality_cost": 0.0,
+        "matched_bits_ok": true
+      },
+      {
+        "budget": 24,
+        "seed": 42,
+        "fairness_benefit_worst": 0.0,
+        "disparity_reduction_cddb": 0.0,
+        "aggregate_quality_cost": 0.0,
+        "matched_bits_ok": true
+      },
+      {
+        "budget": 28,
+        "seed": 42,
+        "fairness_benefit_worst": 0.0,
+        "disparity_reduction_cddb": 0.0,
+        "aggregate_quality_cost": 0.0,
+        "matched_bits_ok": true
+      },
+      {
+        "budget": 20,
+        "seed": 7,
+        "fairness_benefit_worst": 0.0,
+        "disparity_reduction_cddb": 0.0,
+        "aggregate_quality_cost": 0.0,
+        "matched_bits_ok": true
+      },
+      {
+        "budget": 24,
+        "seed": 7,
+        "fairness_benefit_worst": 0.0,
+        "disparity_reduction_cddb": 0.0,
+        "aggregate_quality_cost": 0.0,
+        "matched_bits_ok": true
+      },
+      {
+        "budget": 28,
+        "seed": 7,
+        "fairness_benefit_worst": 0.0,
+        "disparity_reduction_cddb": 0.0,
+        "aggregate_quality_cost": 0.0,
+        "matched_bits_ok": true
+      }
+    ]
+  },
+  "power_note": "PILOT SCALE: 72 isolated examples across 4 cohorts, 6 runs. Underpowered - provisional evidence, not a final verdict."
+}
