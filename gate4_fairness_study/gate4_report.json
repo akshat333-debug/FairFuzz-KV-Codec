@@ -1,0 +1,235 @@
+{
+  "decision": "FAIL",
+  "reasoning": "fuzzy did not show a consistent, practically meaningful benefit over no_repair (accuracy gain -0.013, 25% consistent; worst-cohort gain -0.050, 0% consistent) and/or was dominated by the best simple competitor (CI [-0.050, 0.037]). Codec is preserved; fuzzy scoring is reported as NEGATIVE evidence, not a validated claim.",
+  "mean_accuracy_gain": -0.0125,
+  "mean_worst_cohort_gain": -0.04999999999999999,
+  "accuracy_directional_consistency": 0.25,
+  "worst_cohort_directional_consistency": 0.0,
+  "ci_low_vs_best_simple": -0.05,
+  "ci_high_vs_best_simple": 0.0375,
+  "failure_notes": [
+    "fuzzy INCREASED worst-cohort degradation on average (-0.050) - overprotecting some cohorts at the expense of others (Prompt 14 item 98 failure mode)"
+  ],
+  "runs": [
+    {
+      "budget_retention_ratio": 0.3,
+      "seed": 42,
+      "matched_bits_ok": true,
+      "metrics": {
+        "no_repair": {
+          "system": "no_repair",
+          "task_accuracy": 0.1,
+          "worst_cohort_degradation": 0.8,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.69362907409668,
+          "repair_accept_rate": 0.0,
+          "mean_latency_seconds_per_candidate": 0.0
+        },
+        "fuzzy": {
+          "system": "fuzzy",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.75388870239258,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 0.0005211259873060462
+        },
+        "monotone": {
+          "system": "monotone",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.7525556564331,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 8.167903187520215e-06
+        },
+        "knapsack": {
+          "system": "knapsack",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.78662738800049,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 4.214867109991179e-06
+        },
+        "logistic": {
+          "system": "logistic",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.7525556564331,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 6.036946249605033e-06
+        }
+      },
+      "fuzzy_vs_norepair_accuracy_gain": -0.1,
+      "fuzzy_vs_norepair_worst_cohort_gain": -0.19999999999999996,
+      "fuzzy_vs_best_simple_accuracy_gain": 0.0
+    },
+    {
+      "budget_retention_ratio": 0.5,
+      "seed": 42,
+      "matched_bits_ok": true,
+      "metrics": {
+        "no_repair": {
+          "system": "no_repair",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 24.123467350006102,
+          "repair_accept_rate": 0.0,
+          "mean_latency_seconds_per_candidate": 0.0
+        },
+        "fuzzy": {
+          "system": "fuzzy",
+          "task_accuracy": 0.05,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.09999999999999998,
+          "mean_kv_mse": 24.21136255264282,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 0.0005369063980826822
+        },
+        "monotone": {
+          "system": "monotone",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 24.211689376831053,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 5.1244812976513625e-06
+        },
+        "knapsack": {
+          "system": "knapsack",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 24.227171421051025,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 4.033769178156911e-06
+        },
+        "logistic": {
+          "system": "logistic",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 24.211689376831053,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 5.643910497945918e-06
+        }
+      },
+      "fuzzy_vs_norepair_accuracy_gain": 0.05,
+      "fuzzy_vs_norepair_worst_cohort_gain": 0.0,
+      "fuzzy_vs_best_simple_accuracy_gain": 0.05
+    },
+    {
+      "budget_retention_ratio": 0.3,
+      "seed": 7,
+      "matched_bits_ok": true,
+      "metrics": {
+        "no_repair": {
+          "system": "no_repair",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.80521583557129,
+          "repair_accept_rate": 0.0,
+          "mean_latency_seconds_per_candidate": 0.0
+        },
+        "fuzzy": {
+          "system": "fuzzy",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.85431251525879,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 0.0006331005420068615
+        },
+        "monotone": {
+          "system": "monotone",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.85781269073486,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 6.721636096473116e-06
+        },
+        "knapsack": {
+          "system": "knapsack",
+          "task_accuracy": 0.1,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.89561252593994,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 5.331130450747893e-06
+        },
+        "logistic": {
+          "system": "logistic",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 33.85781269073486,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 7.377372569508266e-06
+        }
+      },
+      "fuzzy_vs_norepair_accuracy_gain": 0.0,
+      "fuzzy_vs_norepair_worst_cohort_gain": 0.0,
+      "fuzzy_vs_best_simple_accuracy_gain": -0.1
+    },
+    {
+      "budget_retention_ratio": 0.5,
+      "seed": 7,
+      "matched_bits_ok": true,
+      "metrics": {
+        "no_repair": {
+          "system": "no_repair",
+          "task_accuracy": 0.05,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 24.001537227630614,
+          "repair_accept_rate": 0.0,
+          "mean_latency_seconds_per_candidate": 0.0
+        },
+        "fuzzy": {
+          "system": "fuzzy",
+          "task_accuracy": 0.05,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.16666666666666669,
+          "mean_kv_mse": 24.072677516937254,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 0.0006404910131862633
+        },
+        "monotone": {
+          "system": "monotone",
+          "task_accuracy": 0.05,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.16666666666666669,
+          "mean_kv_mse": 24.076880550384523,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 6.9874300362060995e-06
+        },
+        "knapsack": {
+          "system": "knapsack",
+          "task_accuracy": 0.0,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.0,
+          "mean_kv_mse": 24.105920028686523,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 5.647737180691294e-06
+        },
+        "logistic": {
+          "system": "logistic",
+          "task_accuracy": 0.05,
+          "worst_cohort_degradation": 1.0,
+          "cddb": 0.16666666666666669,
+          "mean_kv_mse": 24.076880550384523,
+          "repair_accept_rate": 1.0,
+          "mean_latency_seconds_per_candidate": 7.498074273289653e-06
+        }
+      },
+      "fuzzy_vs_norepair_accuracy_gain": 0.0,
+      "fuzzy_vs_norepair_worst_cohort_gain": 0.0,
+      "fuzzy_vs_best_simple_accuracy_gain": 0.0
+    }
+  ]
+}
