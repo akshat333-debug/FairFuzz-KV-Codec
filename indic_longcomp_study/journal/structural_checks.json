@@ -1,0 +1,8 @@
+{
+  "all_groups_passed_validation": true,
+  "failed_group_ids": [],
+  "pii_passed": true,
+  "duplicate_count": 0,
+  "contamination_overlap_count": 0,
+  "contamination_compared_against": 800
+}

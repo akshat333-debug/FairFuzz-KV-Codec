@@ -1,0 +1,19 @@
+{
+  "num_groups": 10,
+  "full_correct_group_count": 0,
+  "full_correct_group_ids": [],
+  "per_language_accuracy": {
+    "en": 0.1,
+    "hi": 0.0,
+    "hinglish": 0.2,
+    "te_en": 0.0
+  },
+  "structural_checks": {
+    "all_groups_passed_validation": true,
+    "failed_group_ids": [],
+    "pii_passed": true,
+    "duplicate_count": 0,
+    "contamination_overlap_count": 0,
+    "contamination_compared_against": 800
+  }
+}

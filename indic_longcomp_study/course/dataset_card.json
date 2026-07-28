@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "dataset_name": "IndicLongComp",
+  "scale": "course",
+  "languages": [
+    "en",
+    "hi",
+    "hinglish",
+    "te_en"
+  ],
+  "task_families": [
+    "aggregation",
+    "comparison",
+    "counting",
+    "multi_hop",
+    "retrieval"
+  ],
+  "num_groups": 10,
+  "num_variants": 40,
+  "generation_seed": 42,
+  "split_hash": "93415d806748950080d27461da9cc424d6693f7c5a9fabc423de2fd0665929c5",
+  "content_provenance_note": "All context/question text is LLM-authored from hand-designed parallel templates (fairfuzzkv_codec.benchmarks.indic_longcomp.templates), not sourced from MLRBench or any other external corpus (no verified network/license access was available when this was built), and not reviewed by a professional translator or native-speaker annotator. 'Parallel' is used only in the verified structural sense: see parallelism_check_note.",
+  "license_note": "100% project-original synthetic content (no external corpus text is reproduced anywhere in this dataset) - covered by this repository's own license, no third-party license inventory needed.",
+  "pii_review_note": "No real-world personal data. Names are drawn from a fixed synthetic pool shared with fragkv_minpairs.generator.NAME_POOL. An automated regex scan for email addresses and long digit runs (7+) found none - see validators.validate_no_pii.",
+  "contamination_check_note": "Checked against 800 other in-repo generated texts (FragKV-MinPairs); 0 verbatim overlaps found. This is a same-repo self-check ONLY - it cannot and does not verify against any model's actual pretraining corpus, which is not available to check against (documented gap, not assumed clean).",
+  "dedup_note": "Exact-duplicate context text checked via sha256 across every (group, language) pair - see validators.find_duplicate_texts.",
+  "parallelism_check_note": "Every group's language variants share the same drawn canonical_answer, evidence_count, evidence_position_index, and distractor_count by construction (one shared random draw rendered into all 4 languages), verified per-group by validators.validate_parallelism, not merely assumed from generation.",
+  "fragility_distributions": [
+    {
+      "language": "en",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 786,
+      "mean_score": 0.26647078123811213,
+      "std_score": 0.08757578861739278,
+      "min_score": 0.09375,
+      "max_score": 0.44375,
+      "cohort_counts": {
+        "low": 10,
+        "medium": 296,
+        "high": 280,
+        "critical": 200
+      }
+    },
+    {
+      "language": "hi",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 1042,
+      "mean_score": 0.34393001017083175,
+      "std_score": 0.08052232934296047,
+      "min_score": 0.11188953488372093,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 108,
+        "medium": 409,
+        "high": 197,
+        "critical": 328
+      }
+    },
+    {
+      "language": "hinglish",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 1042,
+      "mean_score": 0.27860294672482216,
+      "std_score": 0.07367832446919154,
+      "min_score": 0.09375,
+      "max_score": 0.36875,
+      "cohort_counts": {
+        "low": 217,
+        "medium": 153,
+        "high": 386,
+        "critical": 286
+      }
+    },
+    {
+      "language": "te_en",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 906,
+      "mean_score": 0.28670915289725935,
+      "std_score": 0.07626329133763544,
+      "min_score": 0.09375,
+      "max_score": 0.36875,
+      "cohort_counts": {
+        "low": 224,
+        "medium": 16,
+        "high": 382,
+        "critical": 284
+      }
+    }
+  ]
+}

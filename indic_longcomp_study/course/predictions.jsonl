@@ -1,0 +1,40 @@
+{"group_id": "indic_retrieval_0000_42", "language": "en", "task_family": "retrieval", "correct": false, "generated_text": " Yuki owns code", "parsed_answer": -1}
+{"group_id": "indic_retrieval_0000_42", "language": "hi", "task_family": "retrieval", "correct": false, "generated_text": " Yuki \u0915\u093e", "parsed_answer": -1}
+{"group_id": "indic_retrieval_0000_42", "language": "hinglish", "task_family": "retrieval", "correct": true, "generated_text": " 1<|endoftext|>Human", "parsed_answer": 1}
+{"group_id": "indic_retrieval_0000_42", "language": "te_en", "task_family": "retrieval", "correct": false, "generated_text": " Yuki dagg", "parsed_answer": -1}
+{"group_id": "indic_retrieval_0001_42", "language": "en", "task_family": "retrieval", "correct": false, "generated_text": " Viggo owns code", "parsed_answer": -1}
+{"group_id": "indic_retrieval_0001_42", "language": "hi", "task_family": "retrieval", "correct": false, "generated_text": " Viggo \u0915\u093e", "parsed_answer": -1}
+{"group_id": "indic_retrieval_0001_42", "language": "hinglish", "task_family": "retrieval", "correct": false, "generated_text": " Viggo ka code", "parsed_answer": -1}
+{"group_id": "indic_retrieval_0001_42", "language": "te_en", "task_family": "retrieval", "correct": false, "generated_text": " Viggo dagg", "parsed_answer": -1}
+{"group_id": "indic_multi_hop_0000_42", "language": "en", "task_family": "multi_hop", "correct": false, "generated_text": " Diego's teacher is", "parsed_answer": -1}
+{"group_id": "indic_multi_hop_0000_42", "language": "hi", "task_family": "multi_hop", "correct": false, "generated_text": " Diego \u0915\u0947 \ufffd", "parsed_answer": -1}
+{"group_id": "indic_multi_hop_0000_42", "language": "hinglish", "task_family": "multi_hop", "correct": true, "generated_text": " 0<|endoftext|>Human", "parsed_answer": 0}
+{"group_id": "indic_multi_hop_0000_42", "language": "te_en", "task_family": "multi_hop", "correct": false, "generated_text": " Diego teacher code ", "parsed_answer": -1}
+{"group_id": "indic_multi_hop_0001_42", "language": "en", "task_family": "multi_hop", "correct": false, "generated_text": " Petra owns code ", "parsed_answer": -1}
+{"group_id": "indic_multi_hop_0001_42", "language": "hi", "task_family": "multi_hop", "correct": false, "generated_text": " 1\n\n\u092a", "parsed_answer": 1}
+{"group_id": "indic_multi_hop_0001_42", "language": "hinglish", "task_family": "multi_hop", "correct": false, "generated_text": " 1<|endoftext|>Human", "parsed_answer": 1}
+{"group_id": "indic_multi_hop_0001_42", "language": "te_en", "task_family": "multi_hop", "correct": false, "generated_text": " Nia dagg", "parsed_answer": -1}
+{"group_id": "indic_comparison_0000_42", "language": "en", "task_family": "comparison", "correct": false, "generated_text": " Ansel owns code", "parsed_answer": -1}
+{"group_id": "indic_comparison_0000_42", "language": "hi", "task_family": "comparison", "correct": false, "generated_text": " Ansel \u0915\u0947", "parsed_answer": -1}
+{"group_id": "indic_comparison_0000_42", "language": "hinglish", "task_family": "comparison", "correct": false, "generated_text": " Ansel aur R", "parsed_answer": -1}
+{"group_id": "indic_comparison_0000_42", "language": "te_en", "task_family": "comparison", "correct": false, "generated_text": " Ansel mariyu", "parsed_answer": -1}
+{"group_id": "indic_comparison_0001_42", "language": "en", "task_family": "comparison", "correct": false, "generated_text": " Ravi owns code", "parsed_answer": -1}
+{"group_id": "indic_comparison_0001_42", "language": "hi", "task_family": "comparison", "correct": false, "generated_text": " \u0924\u0930\u0940", "parsed_answer": -1}
+{"group_id": "indic_comparison_0001_42", "language": "hinglish", "task_family": "comparison", "correct": false, "generated_text": " Ravi aur Tara", "parsed_answer": -1}
+{"group_id": "indic_comparison_0001_42", "language": "te_en", "task_family": "comparison", "correct": false, "generated_text": " Ravi mariyu", "parsed_answer": -1}
+{"group_id": "indic_counting_0000_42", "language": "en", "task_family": "counting", "correct": false, "generated_text": " 3<|endoftext|>Human", "parsed_answer": 3}
+{"group_id": "indic_counting_0000_42", "language": "hi", "task_family": "counting", "correct": false, "generated_text": " 10 \ufffd", "parsed_answer": 1}
+{"group_id": "indic_counting_0000_42", "language": "hinglish", "task_family": "counting", "correct": false, "generated_text": " Sawaal:", "parsed_answer": -1}
+{"group_id": "indic_counting_0000_42", "language": "te_en", "task_family": "counting", "correct": false, "generated_text": " Sana dagg", "parsed_answer": -1}
+{"group_id": "indic_counting_0001_42", "language": "en", "task_family": "counting", "correct": false, "generated_text": " Zara owns code", "parsed_answer": -1}
+{"group_id": "indic_counting_0001_42", "language": "hi", "task_family": "counting", "correct": false, "generated_text": " 10 \ufffd", "parsed_answer": 1}
+{"group_id": "indic_counting_0001_42", "language": "hinglish", "task_family": "counting", "correct": false, "generated_text": " Yes, the log", "parsed_answer": -1}
+{"group_id": "indic_counting_0001_42", "language": "te_en", "task_family": "counting", "correct": false, "generated_text": " Kian dagg", "parsed_answer": -1}
+{"group_id": "indic_aggregation_0000_42", "language": "en", "task_family": "aggregation", "correct": true, "generated_text": " 4 + ", "parsed_answer": 4}
+{"group_id": "indic_aggregation_0000_42", "language": "hi", "task_family": "aggregation", "correct": false, "generated_text": " 12\n", "parsed_answer": 1}
+{"group_id": "indic_aggregation_0000_42", "language": "hinglish", "task_family": "aggregation", "correct": false, "generated_text": " Leila ke code", "parsed_answer": -1}
+{"group_id": "indic_aggregation_0000_42", "language": "te_en", "task_family": "aggregation", "correct": false, "generated_text": " Kian mariyu", "parsed_answer": -1}
+{"group_id": "indic_aggregation_0001_42", "language": "en", "task_family": "aggregation", "correct": false, "generated_text": " 9 + ", "parsed_answer": 9}
+{"group_id": "indic_aggregation_0001_42", "language": "hi", "task_family": "aggregation", "correct": false, "generated_text": " 10\n\n", "parsed_answer": 1}
+{"group_id": "indic_aggregation_0001_42", "language": "hinglish", "task_family": "aggregation", "correct": false, "generated_text": " Nyla ke code", "parsed_answer": -1}
+{"group_id": "indic_aggregation_0001_42", "language": "te_en", "task_family": "aggregation", "correct": false, "generated_text": " Nyla mariyu", "parsed_answer": -1}

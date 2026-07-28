@@ -1,17 +1,32 @@
-# FairFuzzKV-Codec
+# FragKV-Codec
 
-FairFuzzKV-Codec is a research project for memory-conscious compression of Key-Value (KV) caches in Large Language Models.
+> **Renamed from FairFuzzKV-Codec.** The rename is automatic, not editorial:
+> `core/naming.py` maps the frozen Gate 4 decision to a project identity, and
+> `scripts/run_gate4_study.py` applies it to `pyproject.toml` right after the
+> decision is frozen (see [PROJECT_IDENTITY.json](PROJECT_IDENTITY.json) and
+> [GATE4_REPORT.md](GATE4_REPORT.md)). Gate 4 came back **FAIL**: the Module 3
+> fuzzy repair-priority scorer did not beat no-repair, so the "fuzzy" claim is
+> dropped and the name now reflects the surviving, evidence-grounded
+> contribution — tokenizer-fragmentation-aware KV compression. The Python
+> import path (`fairfuzzkv_codec`) is unchanged; renaming ~100 files' imports
+> for a metadata/display-name switch was judged out of scope for what the
+> acceptance gate ("project name and claims automatically follow the decision
+> file") actually requires — see PENDING.md.
 
-## Current Project Status: Gate 2 Fairness Experiment Complete (Prompts 1-12)
+FragKV-Codec is a research project for memory-conscious compression of Key-Value (KV) caches in Large Language Models.
+
+## Current Project Status: IndicLongComp Benchmark Built (Prompts 1-15)
 
 We are actively building the infrastructure and baseline evaluation pipeline. The repository has completed the **Vertical Skeleton Initialization**, the **Grade-Floor Baseline Gate**, the **Unicode-Aware Group Mapper (Module 1)**, the **Tokenizer Fragility Estimator & Cohort Builder (Module 2)**, the **FragKV-MinPairs Gate 1 Causal Test (Prompt 5)**, the **Scalar Quantization Suite (Prompt 6)**, **LBG Vector Quantization (Prompt 7)**, the **Unified Binary Format + Golomb-Rice Metadata Coding + Streaming Decoder (Prompt 8)**, **Pruning Selectors + Attention-Mass Repair + Local Bound Validation (Prompt 9)**, the **Aggregate Rate-Distortion Allocator (Prompt 10)**, and the **Fairness-Constrained Minimax Water-Filling Allocator (Prompt 11)**.
 
 > See [PENDING.md](PENDING.md) for the honest list of known gaps, deferred scope, and heuristic ceilings.
 > **Read [gate1_study/GATE1_REPORT.md](gate1_study/GATE1_REPORT.md) and [ALLOCATION_MATH.md](ALLOCATION_MATH.md) before relying on allocation** - Gate 1 came back **WEAK_PASS**, not PASS: fragmentation shows only a small, confound-entangled effect on compression failure at this model scale, so the allocators are framed as engineering controls, not validated causal-fairness claims.
 
-**Completed through Prompt 12.** Verification: full test suite passes, `ruff` and `mypy` clean, all deliverables run end-to-end on a real captured Qwen2.5-0.5B cache, Docker image builds and runs the CLI. The Gate-1 200-group causal study was re-run from scratch on the real model and reproduced the committed result exactly (2400 predictions, WEAK_PASS).
+**Completed through Prompt 14.** Verification: full test suite passes, `ruff` and `mypy` clean, all deliverables run end-to-end on a real captured Qwen2.5-0.5B cache, Docker image builds and runs the CLI. The Gate-1 200-group causal study was re-run from scratch on the real model and reproduced the committed result exactly (2400 predictions, WEAK_PASS).
 
 > **Gate 2 came back FAIL at pilot scale** ([gate2_fairness_study/GATE2_REPORT.md](gate2_fairness_study/GATE2_REPORT.md)): the aggregate and minimax allocators chose identical per-cohort bit-widths (zero worst-cohort fairness benefit), and the intersection-full-correct isolation retained only low-fragmentation cohorts (the same base-model confound as Gate 1). Minimax is reported as **negative evidence** for the fairness thesis at this scale — the codec is preserved and no fairness claim is fabricated. See RISK_REGISTER R-09.
+
+> **Gate 4 came back FAIL** ([GATE4_REPORT.md](GATE4_REPORT.md)): on a real Qwen2.5-0.5B pilot (5 groups x 2 seeds x 4 fragmentation levels x 2 budgets, matched bits verified in every one of 80 runs), the Module 3 fuzzy repair-priority scorer did not beat no-repair on task accuracy (-0.013 mean gain, 25% directionally consistent) or worst-cohort degradation (-0.050 mean gain — fuzzy made the worst cohort WORSE on average, an overprotection failure mode), and was not distinguishable from its simplest competitors (95% CI on fuzzy-vs-best-simple accuracy: [-0.050, 0.037]). Fuzzy scoring is reported as **negative evidence**; it remains in the codebase as an optional, non-default scorer. See RISK_REGISTER R-10 and CLAIMS_LEDGER C-23.
 
 ### What has been implemented so far:
 
@@ -84,8 +99,31 @@ We are actively building the infrastructure and baseline evaluation pipeline. Th
 13. **Prompt 11 — Fairness-Constrained Minimax Allocator** (`fairfuzzkv_codec.allocation.minimax`)
     - Minimizes the worst-cohort distortion at a fixed complete bit budget. Continuous water-filling derived from KKT conditions ([ALLOCATION_MATH.md](ALLOCATION_MATH.md); the optimum equalizes achieved **distortion**, not beta) projected to discrete scalar/LBG choices, with an exact epigraph reference solver. Reports worst/average distortion, the Pareto frontier (cost of fairness), and allocation shifts vs the aggregate control. Frozen setup in [GATE2_CONFIG.md](GATE2_CONFIG.md); live study in [gate2_study/](gate2_study/).
 
+14. **Prompt 13 — Fuzzy Repair-Priority Scorer and Simpler Competitor Suite** (`fairfuzzkv_codec.repair_scoring`) — Module 3
+    - A real, inspectable Mamdani fuzzy inference system: triangular membership functions, a documented 10-rule base, min/max aggregation, centroid defuzzification, and per-candidate rule traces — not a neural network renamed "fuzzy" (`fuzzy.py`).
+    - Three non-fuzzy competitors on the identical normalized input contract: monotone weighted score, sigmoid (logistic-shaped) score, and knapsack value/cost ratio (`competitors.py`). A calibrated tree/MLP competitor is deliberately skipped — no real repair-outcome labels exist to validate one against without fabricating a result (see PENDING.md).
+    - Inputs (fragility, evidence/attention importance, completion cost, staleness, optional uncertainty) are normalized with train-only min-max statistics (`inputs.py`), the same train/apply discipline as `quantization/calibration.py`.
+    - Config-selectable ablation registry (`ablation.py`) runs every scorer on identical candidates/budgets; sensitivity analysis over fuzzy breakpoints and rules, plus measured latency/parameter-count complexity per scorer (`sensitivity.py`).
+    - Drop-in integration with the **unchanged** Prompt 9 `RepairContract` — any scorer's output proposes a budget-neutral swap (`integration.py`) that the frozen local mass condition still accepts/rejects; the codec is byte-identical if this module is removed.
+    - Live demo on synthetic candidates (scores structural signals, not raw KV tensors, so no HF capture is needed): `scripts/run_repair_scoring_demo.py` → [repair_scoring_study/](repair_scoring_study/).
+
+15. **Prompt 14 — Gate 4 Fuzzy-vs-Simple Ablation and Naming Decision** (`fairfuzzkv_codec.evaluation.gate4`) — Gate 4 Decision: **FAIL**
+    - Real Qwen2.5-0.5B pilot comparing `{no_repair, fuzzy, monotone, knapsack, logistic}` at 2 budgets (retention ratio 0.3/0.5) x 2 seeds (42, 7) x the 4 `n_g` fragmentation cohorts, using REAL per-position candidate signals (fragility from Module 2, attention mass from a real captured audited head via a `q_proj` forward hook + `output_attentions=True`, surface-group token count, positional staleness) — never synthetic inputs (contrast with Prompt 13's demo). Frozen pre-registered thresholds tested on synthetic fixtures before the real run (`tests/evaluation/test_gate4.py`); frozen setup in [GATE4_CONFIG.md](GATE4_CONFIG.md).
+    - `ExplicitMaskCodec` (`codec/explicit_mask.py`) applies a caller-supplied retention mask instead of an internally-computed one, so every scorer's bits/element is matched BY CONSTRUCTION (Prompt 9's repair swaps are budget-neutral) — verified true in all 80 real runs, not assumed.
+    - Result: fuzzy did not beat no-repair on task accuracy (-0.013 mean gain, 25% consistent) or worst-cohort degradation (-0.050 mean gain — fuzzy INCREASED the worst cohort's degradation, an overprotection failure mode per item 98), and was statistically indistinguishable from its simplest competitors (95% CI [-0.050, 0.037]). Full report: [GATE4_REPORT.md](GATE4_REPORT.md); raw predictions: [gate4_fairness_study/predictions.jsonl](gate4_fairness_study/predictions.jsonl).
+    - **Automatic naming/claims switch** (`core/naming.py`): the frozen decision rewrote `pyproject.toml`'s package name to `fragkv-codec` and wrote [PROJECT_IDENTITY.json](PROJECT_IDENTITY.json) — not a manual follow-up. Two report templates ([GATE4_REPORT_PASS_TEMPLATE.md](GATE4_REPORT_PASS_TEMPLATE.md), [GATE4_REPORT_FAIL_TEMPLATE.md](GATE4_REPORT_FAIL_TEMPLATE.md)) were prepared before the run so either outcome could be completed immediately.
+
+16. **Prompt 15 — IndicLongComp Parallel Multilingual and Code-Mixed Benchmark** (`fairfuzzkv_codec.benchmarks.indic_longcomp`)
+    - Four language/code-mix conditions (English, Hindi, Hinglish, Telugu-English) x five task families (retrieval, multi-hop, comparison, counting, evidence aggregation), built from hand-designed parallel templates. **Content is LLM-authored, not sourced from any external corpus (MLRBench or otherwise — no verified network/license access was available) and not professionally translated or reviewed** — stated explicitly in every dataset card, never presented as sourced/reviewed content.
+    - "Parallel" used only in the **verified structural sense** per the Prompt 15 non-negotiable: every language variant of a group is rendered from ONE shared random draw (names, digits, evidence position, distractor count), so the canonical answer — always a language-independent single digit — is identical by construction across all 4 languages, checked per-group by `validators.validate_parallelism` (not assumed from translation quality).
+    - Full dataset-card discipline: license inventory (100% project-original, no external corpus), automated PII regex scan, exact-duplicate dedup, a real contamination self-check against FragKV-MinPairs' 800 already-committed texts (0 overlaps found), and a checksum split-hash — all with `encoding="utf-8"` explicit on every file write (unlike `fragkv_minpairs.dataset_card`, which crashed on Windows for exactly this reason — fixed as part of this prompt since it became a hard blocker for the contamination check; see RISK_REGISTER).
+    - Per-language tokenizer-fragility distributions and quantile-cohort coverage, reusing Module 2's real pipeline unchanged (`fragility_report.py`).
+    - Real FullKV baseline run on Qwen2.5-0.5B, intersection-full-correct isolation tagged BEFORE any compression evaluation (`runner.py`). Course subset (10 groups, real FullKV run) + journal subset (250 groups, structurally validated, FullKV run left as documented follow-up given compute budget). Full report: [INDICLONGCOMP_REPORT.md](INDICLONGCOMP_REPORT.md).
+
 ### Next Steps:
 - **Cohort-conditioned fairness (later prompts):** tie the minimax allocator to fragility-derived cohorts / codebooks. Per Gate 1's WEAK_PASS result, do not premise this on "fragmentation causally requires protection" without re-reading `gate1_study/GATE1_REPORT.md`'s caveats first — keep the framing as an engineering control.
+- **Repair-priority scorer validation at scale:** Gate 4's real-data comparison (`gate4_fairness_study/`) is pilot-scale (80 pooled cells) and came back FAIL — do not cite the fuzzy scorer as superior to its competitors. A larger, more heterogeneous candidate pool (naturalistic high-fragmentation text, multiple audited heads/layers) is the natural follow-up before writing fuzzy scoring off entirely.
+- **IndicLongComp at scale:** the journal subset (250 groups) is generated and structurally validated but has NOT had a real FullKV run — do that next to get a non-empty, adequately-powered isolation subset before running any compression/fairness comparison on this benchmark (the course subset's isolation subset is empty at 0/10 full-correct groups, consistent with small-n noise, not a validated capability finding — see INDICLONGCOMP_REPORT.md).
 
 ## Usage
 

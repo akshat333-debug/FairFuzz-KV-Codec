@@ -61,6 +61,52 @@ needing genuine 4-bit storage; `UniformQuantCodec` remains available for
 existing callers (`baselines.py`, `demo.py`, matched-bit evaluator) that
 don't need packing.
 
+## Prompt 13: fuzzy repair-priority scorer validated on synthetic candidates only
+
+`repair_scoring_study/scorer_comparison.json` compares the fuzzy scorer
+against its three competitors on synthetic candidate signals (random
+fragility/evidence/cost/staleness values), not a real repair-outcome
+dataset - none exists yet. Do not cite one scorer as "better" than another
+for real repair decisions without a downstream-task study first. A small
+calibrated tree/MLP competitor (Prompt 13 item 88, marked "if justified")
+was deliberately NOT implemented for the same reason: fitting one against a
+proxy label would fabricate a validation result the project has no real
+data to support. See CLAIMS_LEDGER C-22.
+
+## Prompt 14: Gate 4 FAIL - fuzzy scoring is negative evidence; Python import path NOT renamed
+
+`GATE4_REPORT.md` / RISK_REGISTER R-10: on a real Qwen2.5-0.5B pilot (80
+pooled cells), the fuzzy repair-priority scorer did not beat no-repair and
+was not distinguishable from its simpler competitors. Do not cite fuzzy
+scoring as validated. The automatic naming switch (`core/naming.py`)
+renamed the PyPI/pip distribution name in `pyproject.toml` to
+`fragkv-codec` and wrote `PROJECT_IDENTITY.json`, per the frozen decision -
+but the Python IMPORT path (`fairfuzzkv_codec`, ~100+ source/test files)
+was deliberately left unchanged. Renaming every import statement is a large,
+mechanical, error-prone change disproportionate to what "the project name
+and claims automatically follow the decision file" (Prompt 14's acceptance
+gate) actually requires - it names PROJECT metadata, not the internal
+package layout. If a full package rename is wanted later, it should be its
+own reviewed change, not a side effect of a gate decision script.
+
+## Prompt 15: IndicLongComp built at pilot scale - journal subset has no real FullKV run yet
+
+`INDICLONGCOMP_REPORT.md` / RISK_REGISTER R-12: the course subset's real
+Qwen2.5-0.5B FullKV run found an EMPTY intersection-full-correct isolation
+subset (0/10 groups), consistent with small-sample noise (8-10 datapoints
+per breakdown cell), not a validated capability or fragility-effect
+finding. The 250-group journal subset is generated and structurally
+validated (parallelism, PII, dedup, contamination) but has NOT had a real
+FullKV run - that is the natural next step before any compression/fairness
+comparison on this benchmark, left undone here given real per-example
+model-forward-pass compute cost (~1000 generations) beyond this session's
+budget. Also: every context/question string in this benchmark is
+LLM-authored from hand-designed templates, not sourced from MLRBench or any
+other external corpus (no verified network/license access was available)
+and not professionally translated or reviewed - stated explicitly in every
+dataset card's `content_provenance_note`, never presented as sourced or
+reviewed content.
+
 ## Deliberate heuristic ceilings (documented in code with `ponytail:` comments)
 
 - **`ScalarQuantCodec` mixed-precision** (`codec/scalar_quant.py`) groups by

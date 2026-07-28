@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "dataset_name": "IndicLongComp",
+  "scale": "journal",
+  "languages": [
+    "en",
+    "hi",
+    "hinglish",
+    "te_en"
+  ],
+  "task_families": [
+    "aggregation",
+    "comparison",
+    "counting",
+    "multi_hop",
+    "retrieval"
+  ],
+  "num_groups": 50,
+  "num_variants": 200,
+  "generation_seed": 42,
+  "split_hash": "915937d3ec619cbbab2e811458470c8f0cb1832f2f6bf1dbd1294c1f587108e0",
+  "content_provenance_note": "All context/question text is LLM-authored from hand-designed parallel templates (fairfuzzkv_codec.benchmarks.indic_longcomp.templates), not sourced from MLRBench or any other external corpus (no verified network/license access was available when this was built), and not reviewed by a professional translator or native-speaker annotator. 'Parallel' is used only in the verified structural sense: see parallelism_check_note.",
+  "license_note": "100% project-original synthetic content (no external corpus text is reproduced anywhere in this dataset) - covered by this repository's own license, no third-party license inventory needed.",
+  "pii_review_note": "No real-world personal data. Names are drawn from a fixed synthetic pool shared with fragkv_minpairs.generator.NAME_POOL. An automated regex scan for email addresses and long digit runs (7+) found none - see validators.validate_no_pii.",
+  "contamination_check_note": "Checked against 800 other in-repo generated texts (FragKV-MinPairs); 0 verbatim overlaps found. This is a same-repo self-check ONLY - it cannot and does not verify against any model's actual pretraining corpus, which is not available to check against (documented gap, not assumed clean).",
+  "dedup_note": "Exact-duplicate context text checked via sha256 across every (group, language) pair - see validators.find_duplicate_texts.",
+  "parallelism_check_note": "Every group's language variants share the same drawn canonical_answer, evidence_count, evidence_position_index, and distractor_count by construction (one shared random draw rendered into all 4 languages), verified per-group by validators.validate_parallelism, not merely assumed from generation.",
+  "fragility_distributions": []
+}
