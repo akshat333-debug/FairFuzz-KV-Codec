@@ -49,18 +49,18 @@ def write_dataset(groups: List[MinPairGroup], card: DatasetCard, output_dir: Uni
     output_dir.mkdir(parents=True, exist_ok=True)
 
     groups_path = output_dir / "groups.jsonl"
-    with open(groups_path, "w") as f:
+    with open(groups_path, "w", encoding="utf-8") as f:
         for g in groups:
             f.write(g.model_dump_json() + "\n")
 
     card_path = output_dir / "dataset_card.json"
-    card_path.write_text(card.model_dump_json(indent=2))
+    card_path.write_text(card.model_dump_json(indent=2), encoding="utf-8")
 
 
 def load_dataset(input_dir: Union[str, Path]) -> List[MinPairGroup]:
     input_dir = Path(input_dir)
     groups = []
-    with open(input_dir / "groups.jsonl") as f:
+    with open(input_dir / "groups.jsonl", encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 groups.append(MinPairGroup.model_validate_json(line))
@@ -68,4 +68,4 @@ def load_dataset(input_dir: Union[str, Path]) -> List[MinPairGroup]:
 
 
 def load_dataset_card(input_dir: Union[str, Path]) -> DatasetCard:
-    return DatasetCard.model_validate_json((Path(input_dir) / "dataset_card.json").read_text())
+    return DatasetCard.model_validate_json((Path(input_dir) / "dataset_card.json").read_text(encoding="utf-8"))
