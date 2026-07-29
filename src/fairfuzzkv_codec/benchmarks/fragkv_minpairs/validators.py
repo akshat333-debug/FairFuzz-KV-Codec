@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 from fairfuzzkv_codec.benchmarks.fragkv_minpairs.generator import TOKEN_COUNT_TOLERANCE
 from fairfuzzkv_codec.benchmarks.fragkv_minpairs.numeric_forms import measure_token_count, parse_value
@@ -39,14 +39,22 @@ def validate_evidence_identity(group: MinPairGroup) -> ValidationResult:
     return ValidationResult(passed=True, check_name="evidence_identity")
 
 
-def validate_token_count_target(group: MinPairGroup, tokenizer: Any) -> ValidationResult:
+def validate_token_count_target(
+    group: MinPairGroup, tokenizer: Any, token_count_tolerance: Optional[Dict[int, int]] = None,
+) -> ValidationResult:
     """Independently re-measure (don't trust the stored field) the evidence
     span's token count against its n_g target, and check total context
-    length is matched across the group's variants within tolerance."""
+    length is matched across the group's variants within tolerance.
+    `token_count_tolerance` must match whatever tolerance the group was
+    GENERATED under (see `generator.build_group`'s docstring) - passing the
+    frozen default against a group generated with a wider, tokenizer-
+    recalibrated tolerance would reject it for a reason that was already
+    known and accepted at generation time, not a real validation failure."""
+    tolerance_by_n_g = token_count_tolerance or TOKEN_COUNT_TOLERANCE
     context_lengths = []
     for n_g, variant in group.variants.items():
         realized = measure_token_count(variant.evidence_rendering, tokenizer)
-        tolerance = TOKEN_COUNT_TOLERANCE[n_g]
+        tolerance = tolerance_by_n_g[n_g]
         if abs(realized - n_g) > tolerance:
             return ValidationResult(
                 passed=False,
@@ -144,9 +152,11 @@ VALIDATORS = [
 ]
 
 
-def validate_group(group: MinPairGroup, tokenizer: Any) -> GroupValidationReport:
+def validate_group(
+    group: MinPairGroup, tokenizer: Any, token_count_tolerance: Optional[Dict[int, int]] = None,
+) -> GroupValidationReport:
     results = [v(group) for v in VALIDATORS]
-    results.append(validate_token_count_target(group, tokenizer))
+    results.append(validate_token_count_target(group, tokenizer, token_count_tolerance))
     return GroupValidationReport(
         group_id=group.group_id,
         passed=all(r.passed for r in results),
@@ -154,5 +164,7 @@ def validate_group(group: MinPairGroup, tokenizer: Any) -> GroupValidationReport
     )
 
 
-def validate_dataset(groups: List[MinPairGroup], tokenizer: Any) -> List[GroupValidationReport]:
-    return [validate_group(g, tokenizer) for g in groups]
+def validate_dataset(
+    groups: List[MinPairGroup], tokenizer: Any, token_count_tolerance: Optional[Dict[int, int]] = None,
+) -> List[GroupValidationReport]:
+    return [validate_group(g, tokenizer, token_count_tolerance) for g in groups]

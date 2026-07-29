@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "dataset_name": "FragKV-MinPairs",
+  "tokenizer_name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "num_groups": 20,
+  "fragmentation_levels": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "generation_seed": 42,
+  "split_hash": "91b7cb571c07518e1b8dfc91e23bcdd2a370647fbf50ed1353f13fb6c199b8a1",
+  "transformation_counts": {
+    "digit": 20,
+    "digit_dot": 40,
+    "word_double_sep_letters": 4,
+    "word_hyphen_letters": 16
+  },
+  "difficulty_counts": {
+    "easy": 7,
+    "hard": 8,
+    "medium": 5
+  },
+  "token_count_tolerance": {
+    "1": 0,
+    "2": 0,
+    "4": 1,
+    "8": 1
+  },
+  "notes": "Canonical evidence values are single digits 0-9 (see numeric_forms.py). n_g=1/2 hit their token-count target exactly for every digit; n_g=4/8 are matched within +-1 token (empirically verified against this tokenizer, not assumed) - see token_count_tolerance."
+}

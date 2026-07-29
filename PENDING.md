@@ -107,6 +107,46 @@ and not professionally translated or reviewed - stated explicitly in every
 dataset card's `content_provenance_note`, never presented as sourced or
 reviewed content.
 
+## Prompt 16: baseline matrix - RateQuant/RDKV/KVTuner/KVmix not reproduced; group-aware pruning not in the automated matrix
+
+`BASELINE_MATRIX_REPORT.md` / RISK_REGISTER R-13/R-14: per the Prompt 16
+non-negotiable ("reproducibility is more important than having every
+baseline name in a table"), RateQuant, RDKV, KVTuner, and KVmix are
+explicitly `NOT_REPRODUCED` - no verified network/license access was
+available to confirm their exact published algorithms - each with a
+documented reason and a nearest-faithful-configuration pointer to this
+project's own real functionality (never silently substituted under those
+names). SnapKV, PyramidKV, and H2O ARE implemented but marked
+`APPROXIMATE`: their defining mechanism is reproduced, but hyperparameter
+defaults (observation window/pooling kernel, pyramid ratio, heavy/recent
+split) were not verified against reference code. Group-aware pruning
+(Prompt 9) is also not in the automated matrix - it needs text-derived
+surface-group IDs (from Module 1's GroupMapper) beyond the common
+`Callable[[float], BaseCodec]` adapter shape used here; a text-aware
+adapter variant is the natural follow-up, not attempted in this prompt.
+The real run covers one matched-bit target (4.0 bits/element) on one
+course subset - not a budget sweep.
+
+## Prompt 17: Gate 3 PASS at pilot scale; model-family x allocator and quantizer x cohort interactions deferred
+
+`GATE3_REPORT.md` / RISK_REGISTER R-15: Gate 1 and Gate 2 reproduced in
+decision category across Qwen2.5-0.5B and TinyLlama-1.1B-Chat, but Family
+B's runs are pilot scale (20/16 groups, 1 budget, 1 seed) - much smaller
+than Family A's original real runs (200/24 groups x 6 runs) - and Gate 2's
+FAIL on TinyLlama came from a matched-bit-tolerance violation at that small
+scale, not the same "identical allocations" mechanism Qwen showed. Per
+Prompt 17 item 119, **model-family x allocator** and **quantizer-type x
+cohort** interaction effects were NOT attempted - both would need a second
+full Prompt 10/11 allocator study on TinyLlama, beyond this session's
+compute budget. Cohort risk-band assignment does NOT transfer between
+these two tokenizer families (agreement 0.23, well below the 0.7 universal
+threshold) - do not claim a universal risk threshold from Module 2's
+cohorts without re-calibrating per tokenizer family. Also: the FragKV-
+MinPairs numeric rendering ladder needed a documented tolerance widening to
+even construct a TinyLlama dataset (see R-15) - any THIRD tokenizer family
+added later should expect to need its own such check, not assume the
+Qwen-calibrated ladder transfers by default.
+
 ## Deliberate heuristic ceilings (documented in code with `ponytail:` comments)
 
 - **`ScalarQuantCodec` mixed-precision** (`codec/scalar_quant.py`) groups by

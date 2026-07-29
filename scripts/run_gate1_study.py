@@ -1,4 +1,5 @@
 import argparse
+import json
 import sys
 import time
 from pathlib import Path
@@ -21,7 +22,7 @@ from fairfuzzkv_codec.benchmarks.fragkv_minpairs.stats_utils import (  # noqa: E
 )
 from fairfuzzkv_codec.benchmarks.fragkv_minpairs.validators import validate_dataset  # noqa: E402
 
-MODEL_NAME = "Qwen/Qwen2.5-0.5B"
+MODEL_NAME = "Qwen/Qwen2.5-0.5B"  # default; overridable via --model for cross-model reproduction (Prompt 17 / Gate 3)
 
 
 def compute_gate1_from_predictions(predictions_path: Path):
@@ -50,24 +51,33 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max-new-tokens", type=int, default=4)
     parser.add_argument("--output-dir", type=str, default="results/fragkv_gate1_study")
+    parser.add_argument("--model", type=str, default=MODEL_NAME, help="override for cross-model reproduction (Gate 3)")
+    parser.add_argument(
+        "--token-count-tolerance", type=str, default=None,
+        help='JSON dict override e.g. \'{"1":0,"2":0,"4":2,"8":2}\' - a tokenizer-specific recalibration of the '
+             "numeric rendering ladder's matching tolerance (see generator.build_group's docstring). "
+             "Default: None, i.e. the frozen Qwen-calibrated tolerance, UNCHANGED.",
+    )
     args = parser.parse_args()
+    model_name = args.model
+    token_count_tolerance = {int(k): v for k, v in json.loads(args.token_count_tolerance).items()} if args.token_count_tolerance else None
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("=== FragKV-MinPairs Gate 1 Study ===")
-    print(f"model={MODEL_NAME} num_groups={args.num_groups} seed={args.seed}")
+    print(f"model={model_name} num_groups={args.num_groups} seed={args.seed} token_count_tolerance={token_count_tolerance or 'default (frozen)'}")
 
     print("\n[1] Loading tokenizer and generating validated dataset...")
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     t0 = time.time()
-    groups = generate_validated_dataset(args.num_groups, tokenizer, seed=args.seed)
+    groups = generate_validated_dataset(args.num_groups, tokenizer, seed=args.seed, token_count_tolerance=token_count_tolerance)
     print(f"  generated {len(groups)} validated groups in {time.time() - t0:.1f}s")
     if len(groups) < args.num_groups:
         print(f"  WARNING: requested {args.num_groups} but only {len(groups)} passed validation within budget")
 
     print("\n[2] Re-validating full dataset (independent re-check, not trusting generator)...")
-    reports = validate_dataset(groups, tokenizer)
+    reports = validate_dataset(groups, tokenizer, token_count_tolerance)
     n_failed = sum(1 for r in reports if not r.passed)
     if n_failed:
         print(f"  WARNING: {n_failed} groups failed independent re-validation - dropping them")
@@ -75,13 +85,13 @@ def main():
         groups = [g for g in groups if g.group_id in passing_ids]
     print(f"  {len(groups)} groups confirmed valid")
 
-    card = build_dataset_card(groups, MODEL_NAME, seed=args.seed)
+    card = build_dataset_card(groups, model_name, seed=args.seed)
     write_dataset(groups, card, output_dir / "dataset")
     print(f"  dataset written to {output_dir / 'dataset'}, split_hash={card.split_hash[:16]}...")
 
     print("\n[3] Running real study: FullKV + 2 compression baselines, matched at 8 bits/element...")
     print(f"  codecs: {[name for name, _ in build_codecs('x')]}")
-    runner = FragKVRunner(MODEL_NAME)
+    runner = FragKVRunner(model_name)
     t0 = time.time()
     records = runner.run_study(groups, max_new_tokens=args.max_new_tokens)
     elapsed = time.time() - t0
@@ -98,6 +108,9 @@ def main():
 
     report_path = output_dir / "GATE1_REPORT.json"
     report_path.write_text(report.model_dump_json(indent=2))
+    (output_dir / "RUN_METADATA.json").write_text(
+        json.dumps({"model": model_name, "num_groups": args.num_groups, "seed": args.seed, "token_count_tolerance": token_count_tolerance}, indent=2)
+    )
     print(f"  {report.decision.value}")
     print(f"  {report.reasoning}")
     print(f"  full report: {report_path}")

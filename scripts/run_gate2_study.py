@@ -35,7 +35,7 @@ from fairfuzzkv_codec.evaluation.gate2 import (  # noqa: E402
 )
 from fairfuzzkv_codec.evaluation.isolation import PredictionRecord, cohort_counts, isolate  # noqa: E402
 
-MODEL_NAME = "Qwen/Qwen2.5-0.5B"
+MODEL_NAME = "Qwen/Qwen2.5-0.5B"  # default; overridable via --model for cross-model reproduction (Prompt 17 / Gate 3)
 BIT_CHOICES = [4, 8]
 
 
@@ -119,22 +119,30 @@ def main() -> None:
     p.add_argument("--budgets", type=str, default="5,6,7", help="comma list of per-cohort avg bit budgets in [4,8]")
     p.add_argument("--seeds", type=str, default="42", help="comma list of dataset seeds")
     p.add_argument("--output-dir", type=str, default="gate2_fairness_study")
+    p.add_argument("--model", type=str, default=MODEL_NAME, help="override for cross-model reproduction (Gate 3)")
+    p.add_argument(
+        "--token-count-tolerance", type=str, default=None,
+        help='JSON dict override e.g. \'{"1":0,"2":0,"4":2,"8":2}\' - tokenizer-specific recalibration of the '
+             "rendering ladder's matching tolerance. Default: None, i.e. the frozen Qwen-calibrated tolerance.",
+    )
     args = p.parse_args()
+    model_name = args.model
+    token_count_tolerance = {int(k): v for k, v in json.loads(args.token_count_tolerance).items()} if args.token_count_tolerance else None
 
     budgets_bits = [int(x) for x in args.budgets.split(",")]
     seeds = [int(x) for x in args.seeds.split(",")]
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    runner = FragKVRunner(MODEL_NAME)
+    runner = FragKVRunner(model_name)
     ch = runner.config_hash
-    tok = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tok = AutoTokenizer.from_pretrained(model_name)
 
     all_records: List[PredictionRecord] = []
     runs = []
     n_cohorts = 0
     for seed in seeds:
-        groups = generate_validated_dataset(args.num_groups, tok, seed=seed)
+        groups = generate_validated_dataset(args.num_groups, tok, seed=seed, token_count_tolerance=token_count_tolerance)
         half = len(groups) // 2
         calib_groups, eval_groups = groups[:half], groups[half:]
         cohorts = _calibrate_cohorts(runner, ch, calib_groups)
@@ -160,11 +168,12 @@ def main() -> None:
     print(f"DECISION: {report.decision.value}")
     print(report.reasoning)
 
-    with open(out / "predictions.jsonl", "w") as f:
+    with open(out / "predictions.jsonl", "w", encoding="utf-8") as f:
         for r in all_records:
             f.write(json.dumps(r.__dict__) + "\n")
     (out / "GATE2_REPORT.json").write_text(json.dumps({
-        "num_groups": args.num_groups, "budgets_bits": budgets_bits, "seeds": seeds,
+        "model": model_name, "num_groups": args.num_groups, "budgets_bits": budgets_bits, "seeds": seeds,
+        "token_count_tolerance": token_count_tolerance,
         "n_runs": len(runs), "isolated_examples": len(ids), "cohort_counts": counts,
         "bootstrap": {"point": point, "ci_low": lo, "ci_high": hi},
         "per_run": [r.__dict__ for r in runs],
@@ -173,7 +182,7 @@ def main() -> None:
             f"PILOT SCALE: {len(ids)} isolated examples across {n_cohorts} cohorts, "
             f"{len(runs)} runs. Underpowered - provisional evidence, not a final verdict."
         ),
-    }, indent=2))
+    }, indent=2), encoding="utf-8")
     print(f"saved -> {out}/GATE2_REPORT.json, predictions.jsonl")
 
 

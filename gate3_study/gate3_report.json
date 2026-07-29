@@ -1,0 +1,46 @@
+{
+  "report": {
+    "decision": "PASS",
+    "reasoning": "Both Gate 1 (WEAK_PASS vs WEAK_PASS) and Gate 2 (FAIL vs FAIL) land in the same signal/no-signal category across Qwen/Qwen2.5-0.5B and TinyLlama/TinyLlama-1.1B-Chat-v1.0.",
+    "gate1_reproduces": true,
+    "gate2_reproduces": true,
+    "cohort_transfer_verdict": "model_specific",
+    "claim_scope_statement": "The qualitative Gate 1/Gate 2 pattern reproduces across both tested families. This still does NOT establish a universal claim beyond these two families/scales - see each family's own Gate 1/Gate 2 report for the underlying finding's own strength. Additionally: fragility cohort risk-band assignment does NOT transfer between these tokenizer families (cross-tokenizer stability below the universal-agreement threshold) - do not claim a universal risk threshold; cohorts require per-tokenizer recalibration.",
+    "families": [
+      {
+        "model_name": "Qwen/Qwen2.5-0.5B",
+        "tokenizer_family": "byte-level BPE",
+        "gate1_decision": "WEAK_PASS",
+        "gate2_decision": "FAIL",
+        "gate1_effect_size": 0.82,
+        "gate2_worst_cohort_benefit": 0.0
+      },
+      {
+        "model_name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "tokenizer_family": "SentencePiece",
+        "gate1_decision": "WEAK_PASS",
+        "gate2_decision": "FAIL",
+        "gate1_effect_size": 0.1,
+        "gate2_worst_cohort_benefit": -1.0
+      }
+    ]
+  },
+  "cohort_stability": {
+    "schema_version": 1,
+    "tokenizer_a": "Qwen/Qwen2.5-0.5B",
+    "tokenizer_b": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "num_units_compared": 61,
+    "cohort_agreement_rate": 0.22950819672131148,
+    "verdict": "model_specific"
+  },
+  "hierarchical_bootstrap": {
+    "statistic": "TopK50 n_g=1-vs-8 paired correctness diff, per group, family-then-example resample",
+    "point": 0.0375,
+    "ci_low": 0.0,
+    "ci_high": 0.09,
+    "n_examples_per_family": {
+      "Qwen/Qwen2.5-0.5B": 200,
+      "TinyLlama/TinyLlama-1.1B-Chat-v1.0": 20
+    }
+  }
+}

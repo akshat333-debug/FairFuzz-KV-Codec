@@ -1,0 +1,61 @@
+{
+  "decision": "WEAK_PASS",
+  "control_result": {
+    "codec_name": "FullKV",
+    "low_n_g": 1,
+    "high_n_g": 8,
+    "n_paired_groups": 20,
+    "accuracy_by_n_g": {
+      "1": 0.05,
+      "2": 0.1,
+      "4": 0.1,
+      "8": 0.0
+    },
+    "effect_size": 0.05,
+    "ci_low": 0.0,
+    "ci_high": 0.15,
+    "p_value": 1.0,
+    "monotonic_non_increasing": false,
+    "power_note": "n=20 paired groups. Bootstrap/permutation intervals widen fast below n=100; treat this as a pilot-scale estimate, not a well-powered study, until n is scaled up."
+  },
+  "lossy_results": [
+    {
+      "codec_name": "TopK50",
+      "low_n_g": 1,
+      "high_n_g": 8,
+      "n_paired_groups": 20,
+      "accuracy_by_n_g": {
+        "1": 0.2,
+        "2": 0.2,
+        "4": 0.2,
+        "8": 0.2
+      },
+      "effect_size": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "p_value": 1.0,
+      "monotonic_non_increasing": true,
+      "power_note": "n=20 paired groups. Bootstrap/permutation intervals widen fast below n=100; treat this as a pilot-scale estimate, not a well-powered study, until n is scaled up."
+    },
+    {
+      "codec_name": "UniformQuant8",
+      "low_n_g": 1,
+      "high_n_g": 8,
+      "n_paired_groups": 20,
+      "accuracy_by_n_g": {
+        "1": 0.1,
+        "2": 0.1,
+        "4": 0.1,
+        "8": 0.0
+      },
+      "effect_size": 0.1,
+      "ci_low": 0.0,
+      "ci_high": 0.25,
+      "p_value": 0.5044,
+      "monotonic_non_increasing": true,
+      "power_note": "n=20 paired groups. Bootstrap/permutation intervals widen fast below n=100; treat this as a pilot-scale estimate, not a well-powered study, until n is scaled up."
+    }
+  ],
+  "control_confound": true,
+  "reasoning": "1 lossy codec(s) show a meaningful paired effect, but the FullKV control ALSO shows a comparable effect (|effect|=0.050 >= 3%), so the effect cannot be cleanly attributed to compression rather than fragmentation confusing the base model regardless of codec."
+}

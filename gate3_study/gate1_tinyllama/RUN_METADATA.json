@@ -1,0 +1,11 @@
+{
+  "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "num_groups": 20,
+  "seed": 42,
+  "token_count_tolerance": {
+    "1": 0,
+    "2": 0,
+    "4": 2,
+    "8": 2
+  }
+}

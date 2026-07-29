@@ -1,5 +1,5 @@
 import random
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fairfuzzkv_codec.benchmarks.fragkv_minpairs.numeric_forms import (
     find_rendering_for_target,
@@ -66,11 +66,23 @@ def build_group(
     group_id: str,
     rng: random.Random,
     tokenizer: Any,
+    token_count_tolerance: Optional[Dict[int, int]] = None,
 ) -> Optional[MinPairGroup]:
     """Build one matched minimal-pair group across all FRAGMENTATION_LEVELS.
     Returns None if the tokenizer-aware search couldn't hit every target
     within tolerance for the sampled canonical value - an honest, retryable
-    failure (generator.py's caller just tries a new value/seed draw)."""
+    failure (generator.py's caller just tries a new value/seed draw).
+
+    `token_count_tolerance` defaults to the frozen `TOKEN_COUNT_TOLERANCE`
+    (calibrated against Qwen2.5-0.5B - unchanged behavior). A caller MAY
+    pass a wider tolerance for a different tokenizer family whose token
+    counts don't land on the same ladder rungs (see Prompt 17 / Gate 3:
+    TinyLlama's SentencePiece tokenizer needs tolerance={4:2, 8:2} instead
+    of {4:1, 8:1} - no digit hits n_g=4 AND n_g=8 within the Qwen-calibrated
+    tolerance under that tokenizer - a real, measured, tokenizer-specific
+    recalibration, not a silent change to the frozen Qwen protocol, which
+    keeps using the default unchanged)."""
+    tolerance_by_n_g = token_count_tolerance or TOKEN_COUNT_TOLERANCE
     subject_name = rng.choice(NAME_POOL)
     canonical_value = rng.randint(0, 9)
     distractor_count = rng.choice(sorted(DIFFICULTY_BY_DISTRACTOR_COUNT))
@@ -80,7 +92,7 @@ def build_group(
     renderings = {}
     for n_g in FRAGMENTATION_LEVELS:
         result = find_rendering_for_target(
-            canonical_value, n_g, tokenizer, tolerance=TOKEN_COUNT_TOLERANCE[n_g]
+            canonical_value, n_g, tokenizer, tolerance=tolerance_by_n_g[n_g]
         )
         if result is None:
             return None
@@ -165,17 +177,19 @@ def build_group(
 
 
 def generate_dataset(
-    num_groups: int, tokenizer: Any, seed: int, max_attempts_multiplier: int = 5
+    num_groups: int, tokenizer: Any, seed: int, max_attempts_multiplier: int = 5,
+    token_count_tolerance: Optional[Dict[int, int]] = None,
 ) -> List[MinPairGroup]:
     """Deterministic given (num_groups, tokenizer, seed): generates candidate
-    groups until num_groups succeed or the attempt budget is exhausted."""
+    groups until num_groups succeed or the attempt budget is exhausted.
+    `token_count_tolerance` - see `build_group`'s docstring."""
     rng = random.Random(seed)
     groups: List[MinPairGroup] = []
     attempts = 0
     max_attempts = num_groups * max_attempts_multiplier
     while len(groups) < num_groups and attempts < max_attempts:
         group_id = f"g{attempts:06d}_{seed}"
-        group = build_group(group_id, rng, tokenizer)
+        group = build_group(group_id, rng, tokenizer, token_count_tolerance)
         if group is not None:
             groups.append(group)
         attempts += 1
@@ -183,11 +197,13 @@ def generate_dataset(
 
 
 def generate_validated_dataset(
-    num_groups: int, tokenizer: Any, seed: int, max_attempts_multiplier: int = 10
+    num_groups: int, tokenizer: Any, seed: int, max_attempts_multiplier: int = 10,
+    token_count_tolerance: Optional[Dict[int, int]] = None,
 ) -> List[MinPairGroup]:
     """generate_dataset, but every returned group has also passed the full
     validator suite (validators.validate_group) - backfills with additional
-    candidates if some fail validation, up to the attempt budget."""
+    candidates if some fail validation, up to the attempt budget.
+    `token_count_tolerance` - see `build_group`'s docstring."""
     from fairfuzzkv_codec.benchmarks.fragkv_minpairs.validators import validate_group
 
     rng = random.Random(seed)
@@ -196,10 +212,10 @@ def generate_validated_dataset(
     max_attempts = num_groups * max_attempts_multiplier
     while len(groups) < num_groups and attempts < max_attempts:
         group_id = f"g{attempts:06d}_{seed}"
-        group = build_group(group_id, rng, tokenizer)
+        group = build_group(group_id, rng, tokenizer, token_count_tolerance)
         attempts += 1
         if group is None:
             continue
-        if validate_group(group, tokenizer).passed:
+        if validate_group(group, tokenizer, token_count_tolerance).passed:
             groups.append(group)
     return groups
