@@ -1,0 +1,97 @@
+"""Renders BASELINE_MATRIX_REPORT.md from baseline_matrix_study/'s real
+output (result_tables.json, baseline_cards.json) - separate from
+run_baseline_matrix.py so re-rendering never requires re-running the study.
+"""
+
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+
+REGIME_TITLES = {
+    "compression_quantization": "Compression / Quantization",
+    "prefill_selection": "Prefill-Time Selection",
+    "decode_time_selection": "Decode-Time Selection",
+}
+
+
+def _regime_table_md(regime_key: str, table: dict) -> str:
+    lines = [f"### {REGIME_TITLES[regime_key]}", "", "| Baseline | Matched | Mean bits/element | Mean KV MSE | Mean encode (s) |", "|---|---|---|---|---|"]
+    for name, row in sorted(table.items()):
+        lines.append(
+            f"| {name} | {row['matched_count']}/{row['n_variants']} | "
+            f"{row['mean_actual_bits_per_element']:.3f} | {row['mean_kv_mse']:.4f} | "
+            f"{row['mean_encode_seconds']:.4f} |"
+        )
+    return "\n".join(lines)
+
+
+def _cards_md(cards: list) -> str:
+    lines = ["| Name | Regime | Status | Deviations | Nearest faithful config |", "|---|---|---|---|---|"]
+    for c in sorted(cards, key=lambda c: (c["regime"], c["name"])):
+        lines.append(
+            f"| {c['name']} | {c['regime']} | {c['reproduction_status']} | "
+            f"{c['deviations'] or '-'} | {c['nearest_faithful_configuration'] or '-'} |"
+        )
+    return "\n".join(lines)
+
+
+def main() -> None:
+    study_dir = Path("baseline_matrix_study")
+    tables = json.loads((study_dir / "result_tables.json").read_text(encoding="utf-8"))
+    cards = json.loads((study_dir / "baseline_cards.json").read_text(encoding="utf-8"))
+
+    target = 4.0  # kept in sync with run_baseline_matrix.TARGET_BITS_PER_ELEMENT
+
+    sections = "\n\n".join(_regime_table_md(key, tables[key]) for key in ("compression_quantization", "prefill_selection", "decode_time_selection"))
+
+    report = f"""# Baseline Matrix Report (Prompt 16)
+
+Real Qwen2.5-0.5B run against IndicLongComp's course subset (10 groups x 4
+languages = 40 variants). Target: {target} bits/element, {15}% tolerance.
+Matched-bit tuning is automated per baseline (`baselines.adapter.tune_to_matched_bits`)
+- an unmatched baseline is reported AS unmatched, never silently excluded.
+
+Regimes are kept STRICTLY separate per Prompt 16 item 108 - decode-time
+results (H2O) never appear in a prefill-selection table, and vice versa.
+
+## Result tables
+
+{sections}
+
+## Baseline cards (provenance/configuration)
+
+Every baseline - reproduced or not - has exactly one card (Prompt 16 item 113).
+
+{_cards_md(cards)}
+
+## Non-negotiable compliance
+
+- **Reproducibility over completeness**: RateQuant, RDKV, KVTuner, KVmix are
+  explicitly `not_reproduced` with a stated reason (no verified network/
+  license access to the original paper or reference code in this
+  environment) and a nearest-faithful-configuration pointer to this
+  project's own real functionality - never silently reimplemented under
+  those names.
+- SnapKV, PyramidKV, H2O are marked `approximate`: their DEFINING mechanism
+  (observation-window voting + pooling; per-layer pyramid budget; heavy-
+  hitter + recency union) is reproduced, but specific hyperparameter
+  defaults were not verified against reference code - see each card's
+  `deviations` field.
+- UniformINT8/INT4, FairFuzzKV-Scalar, FairFuzzKV-LBG, TopK-L2 are this
+  project's own already-real, already-tested codecs (Prompts 2/6/7) -
+  `faithful` by definition, not literature reproductions.
+
+## Raw data
+
+`baseline_matrix_study/raw_results.jsonl` - one row per (variant, baseline)
+matched-bit comparison. Regenerable via `scripts/run_baseline_matrix.py`.
+"""
+    Path("BASELINE_MATRIX_REPORT.md").write_text(report, encoding="utf-8")
+    print("saved -> BASELINE_MATRIX_REPORT.md")
+
+
+if __name__ == "__main__":
+    main()

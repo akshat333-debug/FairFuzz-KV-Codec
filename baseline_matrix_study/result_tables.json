@@ -1,0 +1,57 @@
+{
+  "compression_quantization": {
+    "UniformINT8/INT4": {
+      "n_variants": 40,
+      "matched_count": 40,
+      "mean_actual_bits_per_element": 4.010522260764543,
+      "mean_kv_mse": 4.0912834227085115,
+      "mean_encode_seconds": 0.0015938075026497244
+    },
+    "FairFuzzKV-Scalar": {
+      "n_variants": 40,
+      "matched_count": 40,
+      "mean_actual_bits_per_element": 4.048365301099802,
+      "mean_kv_mse": 0.9072445172816515,
+      "mean_encode_seconds": 0.00546581000671722
+    },
+    "FairFuzzKV-LBG": {
+      "n_variants": 40,
+      "matched_count": 40,
+      "mean_actual_bits_per_element": 4.089624339293281,
+      "mean_kv_mse": 1.5075899763032794,
+      "mean_encode_seconds": 0.9123422375065274
+    }
+  },
+  "prefill_selection": {
+    "TopK-L2": {
+      "n_variants": 40,
+      "matched_count": 40,
+      "mean_actual_bits_per_element": 3.9999254996195166,
+      "mean_kv_mse": 36.04632496014237,
+      "mean_encode_seconds": 0.0016640075016766786
+    },
+    "SnapKV": {
+      "n_variants": 40,
+      "matched_count": 40,
+      "mean_actual_bits_per_element": 4.012438219883341,
+      "mean_kv_mse": 35.94772437512874,
+      "mean_encode_seconds": 0.0011421024915762245
+    },
+    "PyramidKV": {
+      "n_variants": 40,
+      "matched_count": 40,
+      "mean_actual_bits_per_element": 4.000128507645967,
+      "mean_kv_mse": 30.9083680793643,
+      "mean_encode_seconds": 0.0012413799995556474
+    }
+  },
+  "decode_time_selection": {
+    "H2O": {
+      "n_variants": 40,
+      "matched_count": 40,
+      "mean_actual_bits_per_element": 3.980251567217101,
+      "mean_kv_mse": 36.07536390572786,
+      "mean_encode_seconds": 0.0011623174941632897
+    }
+  }
+}
