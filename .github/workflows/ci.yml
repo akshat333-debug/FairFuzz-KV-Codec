@@ -26,3 +26,11 @@ jobs:
       
     - name: Test with pytest
       run: uv run pytest tests/ --cov=fairfuzzkv_codec
+
+    # Performance REGRESSION guard (Prompt 18 item 126). These are loose
+    # ceilings that catch order-of-magnitude regressions - they are guardrails,
+    # not performance claims, and are run separately so a perf regression is
+    # distinguishable from a correctness failure in the CI log.
+    - name: Performance regression thresholds
+      run: uv run pytest tests/systems -q -k "regression or large_context or load or fuzz"
+

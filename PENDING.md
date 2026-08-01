@@ -178,6 +178,32 @@ even construct a TinyLlama dataset (see R-15) - any THIRD tokenizer family
 added later should expect to need its own such check, not assume the
 Qwen-calibrated ladder transfers by default.
 
+## Prompt 18: decode-side numbers are attention REPLAY, not serving throughput
+
+`PERFORMANCE.md` / `systems_profile/`: prefill is a real Hugging Face forward
+pass, but decode-side consequences are measured through the attention replay
+harness, NOT by integrating this codec into vLLM/TGI/HF-generate. So
+"tokens/s" is a replay rate and is labelled that way everywhere; no end-to-end
+serving speedup is claimed. Also measured and reported plainly: the codec is
+NOT the bottleneck (prefill 115-208 ms vs 0.6-2.4 ms scalar encode), so this
+codec buys memory, not speed. CPU-only, one machine; no GPU numbers are
+reported because none were measured. `measure_peak_memory`'s CPU reading uses
+tracemalloc and therefore does not see torch's C++ allocator - stated rather
+than over-claimed.
+
+## Prompt 19: dashboard is the sanctioned Streamlit fallback, not React/Next.js
+
+Prompt 19 asks for React/Next.js + FastAPI with a "high-quality Streamlit
+fallback only if schedule requires". This is the Streamlit fallback, chosen
+because the interactive text demo must call the tokenizer, Module 1/2, and the
+real codecs live, which is direct in-process and materially more moving parts
+across an HTTP boundary plus a node build toolchain. Node IS available in this
+environment (v22), so this is a scope/schedule judgement, not an environment
+block - stated honestly. Trade-off: a less bespoke visual language than a
+hand-built React product would give. The "fallback recorded assets" (item 134)
+are a static HTML export (`scripts/export_demo_assets.py`), not a screen
+recording - no video was produced.
+
 ## Deliberate heuristic ceilings (documented in code with `ponytail:` comments)
 
 - **`ScalarQuantCodec` mixed-precision** (`codec/scalar_quant.py`) groups by
@@ -298,9 +324,9 @@ Qwen-calibrated ladder transfers by default.
     MLflow/W&B); append-only so a rerun can never quietly restate an earlier
     result. Tested in `tests/experiment_tracking/`.
 
-## Verification status (through Prompt 17)
+## Verification status (through Prompt 19)
 
-- **493/493 tests pass**, ruff clean, mypy clean (183 source files).
+- **548/548 tests pass**, ruff clean, mypy clean (195 source files).
 - Every prompt deliverable runs end-to-end on real models: grade-floor demo
   (`scripts/demo.py`), unicode grouping, fragility estimation, Gate 1 study
   (reproducible from committed `gate1_study/predictions.jsonl` - re-run from

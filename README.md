@@ -17,14 +17,14 @@
 
 FairFuzzKV-Codec is a research project for memory-conscious compression of Key-Value (KV) caches in Large Language Models.
 
-## Current Project Status: Gate 3 Cross-Model Reproduction Complete, PASS (Prompts 1-17)
+## Current Project Status: Systems Profiling + Research Dashboard Complete (Prompts 1-19)
 
 We are actively building the infrastructure and baseline evaluation pipeline. The repository has completed the **Vertical Skeleton Initialization**, the **Grade-Floor Baseline Gate**, the **Unicode-Aware Group Mapper (Module 1)**, the **Tokenizer Fragility Estimator & Cohort Builder (Module 2)**, the **FragKV-MinPairs Gate 1 Causal Test (Prompt 5)**, the **Scalar Quantization Suite (Prompt 6)**, **LBG Vector Quantization (Prompt 7)**, the **Unified Binary Format + Golomb-Rice Metadata Coding + Streaming Decoder (Prompt 8)**, **Pruning Selectors + Attention-Mass Repair + Local Bound Validation (Prompt 9)**, the **Aggregate Rate-Distortion Allocator (Prompt 10)**, and the **Fairness-Constrained Minimax Water-Filling Allocator (Prompt 11)**.
 
 > See [PENDING.md](PENDING.md) for the honest list of known gaps, deferred scope, and heuristic ceilings.
 > **Read [gate1_study/GATE1_REPORT.md](gate1_study/GATE1_REPORT.md) and [ALLOCATION_MATH.md](ALLOCATION_MATH.md) before relying on allocation** - Gate 1 came back **WEAK_PASS**, not PASS: fragmentation shows only a small, confound-entangled effect on compression failure at this model scale, so the allocators are framed as engineering controls, not validated causal-fairness claims.
 
-**Completed through Prompt 14.** Verification: full test suite passes, `ruff` and `mypy` clean, all deliverables run end-to-end on a real captured Qwen2.5-0.5B cache, Docker image builds and runs the CLI. The Gate-1 200-group causal study was re-run from scratch on the real model and reproduced the committed result exactly (2400 predictions, WEAK_PASS).
+**Completed through Prompt 19.** Verification: 548 tests pass, `ruff` and `mypy` clean, all deliverables run end-to-end on a real captured Qwen2.5-0.5B cache, Docker image builds and runs the CLI. The Gate-1 200-group causal study was re-run from scratch on the real model and reproduced the committed result exactly (2400 predictions, WEAK_PASS).
 
 > **Gate 2 came back FAIL at pilot scale** ([gate2_fairness_study/GATE2_REPORT.md](gate2_fairness_study/GATE2_REPORT.md)): the aggregate and minimax allocators chose identical per-cohort bit-widths (zero worst-cohort fairness benefit), and the intersection-full-correct isolation retained only low-fragmentation cohorts (the same base-model confound as Gate 1). Minimax is reported as **negative evidence** for the fairness thesis at this scale — the codec is preserved and no fairness claim is fabricated. See RISK_REGISTER R-09.
 
@@ -158,7 +158,20 @@ uv run pytest
 # Lint and type-check
 uv run ruff check .
 uv run mypy .
+
+# Research dashboard (13 pages, loads frozen artifacts only)
+uv run streamlit run dashboard_app.py
+
+# Systems profiling -> systems_profile/ + see PERFORMANCE.md
+uv run python scripts/run_systems_profile.py
+
+# Offline demo snapshot (fallback for presenting without the live app)
+uv run python scripts/export_demo_assets.py   # -> demo_assets/demo.html
 ```
+
+See [PERFORMANCE.md](PERFORMANCE.md) for the measured latency/memory profile,
+honest bottleneck analysis, and troubleshooting guide, and
+[DEMO_SCRIPT.md](DEMO_SCRIPT.md) for the 9-minute demonstration script.
 
 The demo runs the capture, encode, decode, and evaluation loop and writes artifacts (manifests and plots) to the `results/` directory.
 

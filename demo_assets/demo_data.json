@@ -1,0 +1,47 @@
+{
+  "gates": [
+    {
+      "gate": "Gate 1",
+      "decision": "WEAK_PASS",
+      "artifact": "/Users/agraw/Desktop/personal/projects/new projects/FairFuzz-KV-Codec/gate1_study/GATE1_REPORT.json",
+      "status": "ok"
+    },
+    {
+      "gate": "Gate 2",
+      "decision": "FAIL",
+      "artifact": "/Users/agraw/Desktop/personal/projects/new projects/FairFuzz-KV-Codec/gate2_fairness_study/GATE2_REPORT.json",
+      "status": "ok"
+    },
+    {
+      "gate": "Gate 3",
+      "decision": "PASS",
+      "artifact": "/Users/agraw/Desktop/personal/projects/new projects/FairFuzz-KV-Codec/gate3_study/gate3_report.json",
+      "status": "ok"
+    },
+    {
+      "gate": "Gate 4",
+      "decision": "FAIL",
+      "artifact": "/Users/agraw/Desktop/personal/projects/new projects/FairFuzz-KV-Codec/gate4_fairness_study/gate4_report.json",
+      "status": "ok"
+    }
+  ],
+  "num_claims": 28,
+  "num_negative_claims": 5,
+  "limitations": [
+    "Gate 1 (Prompt 5) result: WEAK_PASS, not PASS - read before building Allocation",
+    "Prompt 6 real benchmark result: MSE does not always predict task accuracy",
+    "Environment-blocked (not code defects)",
+    "Resolved in Prompt 6: INT4 genuinely packed now (new codec, old baseline unchanged)",
+    "Prompt 13: fuzzy scoring costs ~200x the simplest competitor (measured)",
+    "Prompt 13: fuzzy repair-priority scorer validated on synthetic candidates only",
+    "Prompt 14: Gate 4 FAIL - fuzzy scoring is negative evidence; project name is NOT switched by the gate",
+    "Prompt 15: IndicLongComp built at pilot scale - journal subset has no real FullKV run yet",
+    "Prompt 16: baseline matrix - RateQuant/RDKV/KVTuner/KVmix not reproduced; group-aware pruning not in the automated matrix",
+    "Prompt 17: Gate 3 PASS at pilot scale; item-119 interactions now measured (both null)",
+    "Deliberate heuristic ceilings (documented in code with `ponytail:` comments)",
+    "Pilot-scale validation (real numbers, too small to generalize) - see RISK_REGISTER R-03",
+    "Deferred to later prompts (out of scope through Prompt 6)",
+    "Verification status (through Prompt 17)",
+    "Resolved earlier (was pending, now done)"
+  ]
+}
