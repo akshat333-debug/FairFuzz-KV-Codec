@@ -8,15 +8,20 @@ from fairfuzzkv_codec.unicode_grouping.scripts import detect_script
 # Leading-space / meta-space markers used by the two supported tokenizer
 # families to signal "this piece starts a new word": byte-level BPE uses
 # 'Ġ' (GPT2/Qwen2), SentencePiece uses '▁' (Llama/T5).
-# ponytail: a piece lacking this marker is treated as a continuation
-# subtoken. Known ceiling: the very first token of an entire sequence never
-# carries the marker even when it IS word-initial, so it is slightly
-# mis-counted as "continuation" - a documented edge case affecting at most
-# one token per text, not engineered around here.
+# A piece lacking this marker is treated as a continuation subtoken, EXCEPT at
+# absolute sequence position 0: the very first token of a sequence never
+# carries a leading-space marker even when it is word-initial, so counting it
+# as a continuation was a real (small) mis-classification. Position 0 is now
+# treated as word-initial by definition, which is what it always is.
 _NEW_WORD_MARKERS = ("Ġ", "▁")
 
 
-def _is_continuation_piece(piece: str) -> bool:
+def _is_continuation_piece(piece: str, sequence_index: int = -1) -> bool:
+    """`sequence_index` is the piece's ABSOLUTE index in the full tokenized
+    sequence (-1 = unknown/not supplied, preserving the old marker-only
+    behaviour for any caller that cannot provide it)."""
+    if sequence_index == 0:
+        return False  # sequence-initial token is word-initial by definition
     return not (piece.startswith(_NEW_WORD_MARKERS) or piece.startswith(" "))
 
 
@@ -66,8 +71,14 @@ def compute_features(
     chars_per_token = char_len / num_subtokens if num_subtokens > 0 else float(char_len)
     bytes_per_token = byte_len / num_subtokens if num_subtokens > 0 else float(byte_len)
 
+    # record.token_indices are absolute positions in the full sequence, so the
+    # sequence-initial token can be identified exactly rather than guessed.
     continuation_ratio = (
-        sum(1 for p in unit_pieces if _is_continuation_piece(p)) / len(unit_pieces) if unit_pieces else 0.0
+        sum(
+            1 for idx, p in zip(record.token_indices, unit_pieces)
+            if _is_continuation_piece(p, sequence_index=idx)
+        ) / len(unit_pieces)
+        if unit_pieces else 0.0
     )
 
     token_cost_inflation = (

@@ -1,3 +1,11 @@
+from fairfuzzkv_codec.evaluation.downstream import (
+    DownstreamScores,
+    best_over_references,
+    exact_match,
+    normalize_answer,
+    score_dataset,
+    token_f1,
+)
 from fairfuzzkv_codec.evaluation.disparity import (
     DisparityReport,
     SystemComparison,
@@ -21,6 +29,8 @@ from fairfuzzkv_codec.evaluation.isolation import (
 )
 
 __all__ = [
+    "DownstreamScores", "exact_match", "token_f1", "score_dataset",
+    "normalize_answer", "best_over_references",
     "DisparityReport", "SystemComparison", "compute_disparity", "compare_systems",
     "PredictionRecord", "isolate", "full_correct_ids", "cohort_counts", "degradation_per_cohort",
     "Gate2Decision", "Gate2Report", "RunComparison", "decide_gate2",

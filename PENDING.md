@@ -1,10 +1,11 @@
 # Pending / Known Gaps
 
-Status as of Prompt 6 completion. Everything below is either an environment
-limitation, a deliberately-deferred scope item from a later prompt, or a
-documented heuristic ceiling. Nothing here is a failing test or a broken
-feature in the completed prompts (Prompts 1-6 all pass: 231/231 tests, ruff
-clean, mypy clean).
+Status as of **Prompt 17** completion. Everything below is either an
+environment limitation, a deliberately-deferred scope item, a documented
+heuristic ceiling, or a **negative/null scientific result that must NOT be
+"fixed"** (fixing a FAIL by changing the number would be fabrication - those
+entries are findings, not defects). Nothing here is a failing test or a broken
+feature.
 
 ## Gate 1 (Prompt 5) result: WEAK_PASS, not PASS - read before building Allocation
 
@@ -199,9 +200,12 @@ Qwen-calibrated ladder transfers by default.
   not a gap for the acceptance gates.
 - **`rare_token_indicator` uses token-id rank as a rarity proxy**
   (`fragility_estimation/features.py`). No real corpus-frequency table.
-- **`continuation_ratio` mis-labels the first token of a sequence** as a
-  continuation (it never carries a leading-space marker even when word-initial).
-  Affects at most one token per text.
+- ~~**`continuation_ratio` mis-labels the first token of a sequence**~~ -
+  **FIXED**. The sequence-initial token is now treated as word-initial by
+  definition (`_is_continuation_piece(piece, sequence_index)`), using the
+  absolute token index already carried on `GroupRecord.token_indices`.
+  Regression tests: `test_sequence_initial_token_is_not_counted_as_a_continuation`,
+  `test_first_unit_continuation_ratio_is_not_inflated`.
 
 ## Pilot-scale validation (real numbers, too small to generalize) - see RISK_REGISTER R-03
 
@@ -216,10 +220,25 @@ Qwen-calibrated ladder transfers by default.
 - **Datasets** LongBench (Dataset 1) and PG-19 (Dataset 2): not integrated.
   Marked `(Pending)` in SPEC_TRACEABILITY.md; planned paths
   `fairfuzzkv_codec.benchmarks.longbench` / `.pg19`.
-- **Downstream Task Accuracy metric** (exact match, F1): not implemented -
-  depends on the dataset integrations above.
-- **Propositions 1 & 2** (`tests/eval/test_prop1_fragility.py`,
-  `test_prop2_allocation.py`): pending, depend on Allocation module.
+- ~~**Downstream Task Accuracy metric** (exact match, F1)~~ - **DONE**:
+  `evaluation/downstream.py`. It was previously blocked on the dataset
+  integrations, but the metric has no dataset dependency - it is a pure
+  function of predicted/gold strings - so it ships independently and works on
+  any benchmark with auditable answers (FragKV-MinPairs, IndicLongComp).
+  Unicode-aware normalization (NFKC, Unicode-category punctuation stripping,
+  English-only article removal so Indic text is not corrupted), multi-reference
+  support, explicit empty-answer conventions. Tested in
+  `tests/evaluation/test_downstream.py`.
+- ~~**Propositions 1 & 2**~~ - **DONE**. Both now exist and pass:
+  `tests/eval/test_prop1_fragility.py` (P1, Fragility Distribution: the
+  transparent score induces a non-degenerate, reproducible ordering in which
+  more-fragmented units score no lower, and quantile cohorts partition it into
+  ordered, covering bands) and `tests/eval/test_prop2_allocation.py` (P2,
+  Allocation Optimality: the exact solver matches independent brute-force
+  enumeration, greedy stays within a bounded gap and never beats the optimum,
+  no allocation exceeds budget, and both objectives are monotone in budget).
+  Each file carries a guard test asserting the proposition is NOT read as the
+  corresponding gate claim (Gate 1 WEAK_PASS / Gate 2 FAIL).
 - **Remaining spec modules not yet built** (empty/partial stubs):
   - `pruning` - COMPLETE (Prompt 9: recency/top-attention-mass/top-k/group-
     aware selectors, max/sum/normalized group aggregation, attention-mass
@@ -272,19 +291,31 @@ Qwen-calibrated ladder transfers by default.
     completeness report). Direct model-injection generation loop remains the
     version-sensitive path already covered by the attention-equivalence
     harness (Prompt 2), not this container decoder.
-  - `experiment_tracking` - empty
+  - `experiment_tracking` - **DONE** (`experiment_tracking/registry.py`):
+    append-only JSONL run index tying each study run to its git commit (with
+    `-dirty` marker), config, seeds, metrics, and artifact paths, plus
+    per-study querying and metric history. Dependency-free by choice (no
+    MLflow/W&B); append-only so a rerun can never quietly restate an earlier
+    result. Tested in `tests/experiment_tracking/`.
 
-## Verification status (through Prompt 6)
+## Verification status (through Prompt 17)
 
-- **231/231 tests pass**, ruff clean, mypy clean (95 source files).
-- All six prompt deliverables run end-to-end: grade-floor demo
+- **493/493 tests pass**, ruff clean, mypy clean (183 source files).
+- Every prompt deliverable runs end-to-end on real models: grade-floor demo
   (`scripts/demo.py`), unicode grouping, fragility estimation, Gate 1 study
-  (reproducible from committed `gate1_study/predictions.jsonl`), scalar
-  quantization + real rate-distortion benchmark (`quantization_benchmark/`).
-- Docker build verified working earlier this session; no dependency changes
-  since Prompt 4, so still valid.
-- `code-review-graph` clean and current: 98 files / 495 nodes / 3523 edges,
-  0 errors.
+  (reproducible from committed `gate1_study/predictions.jsonl` - re-run from
+  scratch and matched exactly), scalar + LBG quantization benchmarks, FFKV
+  binary format with golden vectors, pruning/repair/bound, aggregate + minimax
+  allocators, Gate 2 / Gate 3 / Gate 4 studies, IndicLongComp, baseline matrix.
+- All four gate decisions are reproducible from raw predictions alone, without
+  model access (`compute_gate1_from_predictions`, `compute_gate4_from_predictions`,
+  and the Gate 2/Gate 3 report paths).
+- Docker build verified working; no dependency changes since Prompt 4.
+
+**Gate results, stated plainly:** Gate 1 WEAK_PASS, Gate 2 FAIL, Gate 3 PASS
+(pilot scale), Gate 4 FAIL. Two of four are negative. They are recorded as
+negative evidence and are not to be "resolved" by re-running until a nicer
+number appears.
 
 ## Resolved earlier (was pending, now done)
 

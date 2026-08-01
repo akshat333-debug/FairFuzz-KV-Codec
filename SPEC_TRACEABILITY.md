@@ -25,9 +25,11 @@ This document maps the frozen specification components to concrete code paths.
 
 13. **Cross-Tokenizer/Cross-Model Reproduction, Gate 3 (Prompt 17)**: `fairfuzzkv_codec.evaluation.gate3` (`FamilyGateResult`, `decide_gate3` — frozen PASS/WEAK_PASS/FAIL logic on decision CATEGORY reproduction, tested pre-run in `tests/evaluation/test_gate3.py`; `hierarchical_bootstrap` — two-level resample over families then examples, applied to real data: pooled TopK50 n_g=1-vs-8 paired effect across both families' 200/20 groups, point 0.0375, 95% CI [0.0, 0.09]). Reuses `run_gate1_study.py`/`run_gate2_study.py` (Prompts 5/12) unchanged except a `--model` CLI flag, and `fragility_estimation.stability.compute_cross_tokenizer_stability` (Module 2) unchanged, for the cohort-transfer analysis. `fragkv_minpairs.generator`/`validators` gained an optional `token_count_tolerance` override (default `None` preserves the frozen Qwen behavior exactly) after a real finding: the numeric rendering ladder does not transfer to TinyLlama's SentencePiece tokenizer under the original tolerance. Real cross-model study (Qwen2.5-0.5B vs TinyLlama-1.1B-Chat, pilot scale): `scripts/run_gate3_study.py` → `gate3_study/`, [GATE3_REPORT.md](GATE3_REPORT.md) (**PASS** — both gates reproduce in category; see RISK_REGISTER R-15 / CLAIMS_LEDGER C-27). Frozen config: `GATE3_CONFIG.md`.
 
+10. **Experiment Tracking**: `fairfuzzkv_codec.experiment_tracking` (`registry.py`) - append-only JSONL run index binding each study run to its git commit (with `-dirty` marker), config, seeds, metrics, and artifact paths, with per-study querying and metric history. Dependency-free by choice; append-only so a rerun cannot silently restate an earlier result. Tested in `tests/experiment_tracking/`.
+
 ## Propositions
-- **Proposition 1 (Fragility Distribution)**: Tested in `tests/eval/test_prop1_fragility.py` (Pending)
-- **Proposition 2 (Allocation Optimality)**: Tested in `tests/eval/test_prop2_allocation.py` (Pending)
+- **Proposition 1 (Fragility Distribution)**: Tested in `tests/eval/test_prop1_fragility.py` (**Done**). P1: the transparent fragility score induces a non-degenerate, reproducible ordering over surface units in which more-fragmented units score no lower, and quantile cohorts partition it into ordered, covering bands. Property of the ESTIMATOR - explicitly not the Gate-1 causal claim (which is WEAK_PASS); a guard test pins that distinction.
+- **Proposition 2 (Allocation Optimality)**: Tested in `tests/eval/test_prop2_allocation.py` (**Done**). P2: the exact allocator matches independent brute-force enumeration, greedy stays within a bounded optimality gap and never beats the optimum, no allocation exceeds the serialized budget, and both the aggregate and minimax objectives are monotone non-increasing in budget. Solver correctness - explicitly not the Gate-2 fairness claim (which is FAIL); a guard test pins that distinction.
 
 ## Datasets
 - **Dataset 1 (LongBench)**: Not yet integrated. Planned path: `fairfuzzkv_codec.benchmarks.longbench` (Pending)
@@ -36,7 +38,7 @@ This document maps the frozen specification components to concrete code paths.
 ## Metric Families
 - **Compression Efficiency**: Measured via exact byte accounting (not sparsity masks). Implemented in `fairfuzzkv_codec.codec.binary_serializer.ByteAccountant`, tested in `tests/codec/test_accounting.py`.
 - **Reconstruction Error**: L2/MSE distortion via attention-equivalence check. Implemented in `fairfuzzkv_codec.benchmarks.attention_harness.AttentionVerificationHarness`, tested in `tests/cache_capture/test_hf_capture.py`.
-- **Downstream Task Accuracy**: Exact match, F1 on real benchmark datasets. Not yet implemented — requires Dataset 1/2 integration above. Planned path: `fairfuzzkv_codec.evaluation.downstream` (Pending)
+- **Downstream Task Accuracy**: Exact match and token-level F1, implemented in `fairfuzzkv_codec.evaluation.downstream` (**Done**), tested in `tests/evaluation/test_downstream.py`. Unicode-aware normalization (NFKC, Unicode-category punctuation stripping, English-only article removal so Indic answers are not corrupted), multi-reference `best_over_references`, explicit empty-answer conventions. No dataset dependency - a pure function of predicted/gold strings - so it is usable on any benchmark with auditable answers (FragKV-MinPairs, IndicLongComp) without waiting on LongBench/PG-19.
 - **Throughput/Latency**: Prefill vs Decode speeds. Implemented in `fairfuzzkv_codec.evaluation.profiler.TelemetryTracker`.
 
 ## Go/No-Go Gates
