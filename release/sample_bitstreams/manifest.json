@@ -1,0 +1,54 @@
+{
+  "note": "Real FFK1 v1 containers over a seeded synthetic KV tensor (seed=20). Synthetic so the sample is reproducible byte-for-byte without a model download - this is a FORMAT sample, not a model measurement.",
+  "format_spec": "FORMAT.md",
+  "samples": [
+    {
+      "file": "scalar_int8.ffkv",
+      "codec": "scalar_int8",
+      "bytes": 7411,
+      "sha256": "19a378efb65cf6ef24e2ce26cd8cf52decd81685f8674190ec3c1bbb89ea8755",
+      "kv_shape": [
+        4,
+        1,
+        2,
+        24,
+        32
+      ],
+      "decodes_to_expected_shape": true,
+      "reconstruction_mse": 4.3728574382839724e-05,
+      "bits_per_element": 9.649739583333334
+    },
+    {
+      "file": "scalar_int4.ffkv",
+      "codec": "scalar_int4",
+      "bytes": 4322,
+      "sha256": "a995ca65f1b9d213883e0171ec6fcd5d8370cce7aa955f5f0f1bea9714fa56bc",
+      "kv_shape": [
+        4,
+        1,
+        2,
+        24,
+        32
+      ],
+      "decodes_to_expected_shape": true,
+      "reconstruction_mse": 0.01454197522252798,
+      "bits_per_element": 5.627604166666667
+    },
+    {
+      "file": "lbg_vd8_cb64.ffkv",
+      "codec": "lbg_vd8_cb64",
+      "bytes": 3535,
+      "sha256": "46cc6603e6e10aa02f6b78cfe2602ec5e28cac5c230fe778bc08a338be8cdae6",
+      "kv_shape": [
+        4,
+        1,
+        2,
+        24,
+        32
+      ],
+      "decodes_to_expected_shape": true,
+      "reconstruction_mse": 0.3686031103134155,
+      "bits_per_element": 4.602864583333333
+    }
+  ]
+}

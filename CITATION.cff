@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: "FairFuzzKV-Codec: Tokenizer-Fragmentation-Aware KV-Cache Compression"
+message: "If you use this software or its findings, please cite it as below."
+type: software
+authors:
+  - family-names: "Badampudi"
+    given-names: "Agasthya Anirudh"
+    email: "anirudhbadampudi@gmail.com"
+repository-code: "https://github.com/akshat333-debug/FairFuzz-KV-Codec"
+abstract: >-
+  A memory-conscious codec for transformer Key-Value caches, with exact byte
+  accounting, a versioned binary container format (FFK1), scalar INT8/INT4 and
+  Linde-Buzo-Gray vector quantization, Golomb-Rice metadata coding, group-aware
+  pruning with a local per-head attention-mass bound, and aggregate plus
+  fairness-constrained minimax bit allocation. The project additionally tested,
+  under four pre-registered gates, whether tokenizer fragmentation causes
+  disproportionate compression damage to non-English text. Two of the four
+  gates returned negative results and are reported as such: the fairness
+  allocator showed no worst-cohort benefit (Gate 2, FAIL) and fuzzy
+  repair-priority scoring did not beat no-repair (Gate 4, FAIL). The codec
+  deliverable is independent of, and unaffected by, those negative findings.
+keywords:
+  - kv-cache-compression
+  - vector-quantization
+  - tokenizer-fairness
+  - multilingual-nlp
+  - reproducible-research
+license: MIT
+version: "1.0.0"
+date-released: "2026-08-01"

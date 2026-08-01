@@ -1,6 +1,6 @@
 # Pending / Known Gaps
 
-Status as of **Prompt 17** completion. Everything below is either an
+Status as of **Prompt 20 (final release)** completion. Everything below is either an
 environment limitation, a deliberately-deferred scope item, a documented
 heuristic ceiling, or a **negative/null scientific result that must NOT be
 "fixed"** (fixing a FAIL by changing the number would be fabrication - those
@@ -324,9 +324,15 @@ recording - no video was produced.
     MLflow/W&B); append-only so a rerun can never quietly restate an earlier
     result. Tested in `tests/experiment_tracking/`.
 
-## Verification status (through Prompt 19)
+## Verification status (through Prompt 20 - FINAL RELEASE)
 
-- **548/548 tests pass**, ruff clean, mypy clean (195 source files).
+- **548/548 tests pass**, ruff clean, mypy clean (197 source files).
+- **Release checklist: 10/10 passed, 0 failed, 0 skipped** (`scripts/run_release_checklist.py --full`),
+  covering clean install, lint/types, full suite, binary compatibility, gate
+  decision records, gate reproduction from raw predictions, dashboard render,
+  report generation, required documents, dataset regeneration, and core
+  experiments.
+- **62 released artifacts checksum-verified** against `release/CHECKSUMS.sha256`.
 - Every prompt deliverable runs end-to-end on real models: grade-floor demo
   (`scripts/demo.py`), unicode grouping, fragility estimation, Gate 1 study
   (reproducible from committed `gate1_study/predictions.jsonl` - re-run from

@@ -1,0 +1,91 @@
+{
+  "checks": [
+    {
+      "name": "lint_and_types (ruff + mypy)",
+      "status": "PASS",
+      "detail": "both clean",
+      "seconds": 2.021161291995668,
+      "evidence": {
+        "mypy_tail": [
+          "Success: no issues found in 197 source files"
+        ]
+      }
+    },
+    {
+      "name": "test_suite (pytest)",
+      "status": "PASS",
+      "detail": "548 passed, 1 warning in 82.51s (0:01:22)",
+      "seconds": 83.8178068749985,
+      "evidence": {}
+    },
+    {
+      "name": "binary_compatibility (golden vectors + container round-trip)",
+      "status": "PASS",
+      "detail": "........                                                                 [100%]\n",
+      "seconds": 1.3650043750094483,
+      "evidence": {}
+    },
+    {
+      "name": "gate_decision_records (all four gates)",
+      "status": "PASS",
+      "detail": "Gate 1=WEAK_PASS; Gate 2=FAIL; Gate 3=PASS; Gate 4=FAIL",
+      "seconds": 0.0,
+      "evidence": {
+        "decisions": {
+          "Gate 1": "WEAK_PASS",
+          "Gate 2": "FAIL",
+          "Gate 3": "PASS",
+          "Gate 4": "FAIL"
+        }
+      }
+    },
+    {
+      "name": "gate_reproducibility_from_raw_predictions",
+      "status": "PASS",
+      "detail": "Gate1=WEAK_PASS; Gate4=FAIL (recomputed from raw, no model access)",
+      "seconds": 5.6032262920052744,
+      "evidence": {}
+    },
+    {
+      "name": "dashboard_launch (all pages render via AppTest)",
+      "status": "PASS",
+      "detail": "31 passed in 9.51s",
+      "seconds": 10.76997387499432,
+      "evidence": {}
+    },
+    {
+      "name": "report_generation (offline demo export)",
+      "status": "PASS",
+      "detail": "gates: Gate 1=WEAK_PASS, Gate 2=FAIL, Gate 3=PASS, Gate 4=FAIL",
+      "seconds": 0.11703824999858625,
+      "evidence": {}
+    },
+    {
+      "name": "required_release_documents",
+      "status": "PASS",
+      "detail": "17/17 present",
+      "seconds": 0.0,
+      "evidence": {
+        "missing": []
+      }
+    },
+    {
+      "name": "dataset_regeneration (IndicLongComp)",
+      "status": "PASS",
+      "detail": "saved -> indic_longcomp_study/course and indic_longcomp_study/journal",
+      "seconds": 86.41535174999444,
+      "evidence": {}
+    },
+    {
+      "name": "core_experiments (smoke demo + systems profile)",
+      "status": "PASS",
+      "detail": "demo rc=0, profile rc=0",
+      "seconds": 59.13720620899403,
+      "evidence": {}
+    }
+  ],
+  "passed": 10,
+  "failed": 0,
+  "skipped": 0,
+  "full_mode": true
+}

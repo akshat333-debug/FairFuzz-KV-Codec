@@ -17,14 +17,16 @@
 
 FairFuzzKV-Codec is a research project for memory-conscious compression of Key-Value (KV) caches in Large Language Models.
 
-## Current Project Status: Systems Profiling + Research Dashboard Complete (Prompts 1-19)
+## Current Project Status: FINAL RELEASE (Prompts 1-20)
 
-We are actively building the infrastructure and baseline evaluation pipeline. The repository has completed the **Vertical Skeleton Initialization**, the **Grade-Floor Baseline Gate**, the **Unicode-Aware Group Mapper (Module 1)**, the **Tokenizer Fragility Estimator & Cohort Builder (Module 2)**, the **FragKV-MinPairs Gate 1 Causal Test (Prompt 5)**, the **Scalar Quantization Suite (Prompt 6)**, **LBG Vector Quantization (Prompt 7)**, the **Unified Binary Format + Golomb-Rice Metadata Coding + Streaming Decoder (Prompt 8)**, **Pruning Selectors + Attention-Mass Repair + Local Bound Validation (Prompt 9)**, the **Aggregate Rate-Distortion Allocator (Prompt 10)**, and the **Fairness-Constrained Minimax Water-Filling Allocator (Prompt 11)**.
+This is the final release. The repository completed the **Vertical Skeleton Initialization**, the **Grade-Floor Baseline Gate**, the **Unicode-Aware Group Mapper (Module 1)**, the **Tokenizer Fragility Estimator & Cohort Builder (Module 2)**, the **FragKV-MinPairs Gate 1 Causal Test (Prompt 5)**, the **Scalar Quantization Suite (Prompt 6)**, **LBG Vector Quantization (Prompt 7)**, the **Unified Binary Format + Golomb-Rice Metadata Coding + Streaming Decoder (Prompt 8)**, **Pruning Selectors + Attention-Mass Repair + Local Bound Validation (Prompt 9)**, the **Aggregate Rate-Distortion Allocator (Prompt 10)**, the **Fairness-Constrained Minimax Water-Filling Allocator (Prompt 11)**, the **Gate 2 Matched-Bit Fairness Experiment (Prompt 12)**, the **Fuzzy Repair-Priority Scorer & Competitors (Prompt 13)**, the **Gate 4 Ablation & Naming Decision (Prompt 14)**, the **IndicLongComp Benchmark (Prompt 15)**, the **Baseline Matrix (Prompt 16)**, **Gate 3 Cross-Model Reproduction (Prompt 17)**, **Systems Profiling & Hardening (Prompt 18)**, the **Research Dashboard (Prompt 19)**, and the **Final Reproducibility Release (Prompt 20)**.
+
+> **Headline result, stated up front: two of the four pre-registered gates FAILED.** Gate 1 WEAK_PASS, **Gate 2 FAIL**, Gate 3 PASS, **Gate 4 FAIL**. The fairness hypothesis this project set out to test is **not supported at this scale**, and the codec deliverable is independent of it. See [FINAL_REPORT.md](FINAL_REPORT.md) and [CLAIMS_AUDIT.md](CLAIMS_AUDIT.md).
 
 > See [PENDING.md](PENDING.md) for the honest list of known gaps, deferred scope, and heuristic ceilings.
 > **Read [gate1_study/GATE1_REPORT.md](gate1_study/GATE1_REPORT.md) and [ALLOCATION_MATH.md](ALLOCATION_MATH.md) before relying on allocation** - Gate 1 came back **WEAK_PASS**, not PASS: fragmentation shows only a small, confound-entangled effect on compression failure at this model scale, so the allocators are framed as engineering controls, not validated causal-fairness claims.
 
-**Completed through Prompt 19.** Verification: 548 tests pass, `ruff` and `mypy` clean, all deliverables run end-to-end on a real captured Qwen2.5-0.5B cache, Docker image builds and runs the CLI. The Gate-1 200-group causal study was re-run from scratch on the real model and reproduced the committed result exactly (2400 predictions, WEAK_PASS).
+**Completed through Prompt 20 (final release).** Verification: 548 tests pass, `ruff` and `mypy` clean, all deliverables run end-to-end on a real captured Qwen2.5-0.5B cache, Docker image builds and runs the CLI. The Gate-1 200-group causal study was re-run from scratch on the real model and reproduced the committed result exactly (2400 predictions, WEAK_PASS).
 
 > **Gate 2 came back FAIL at pilot scale** ([gate2_fairness_study/GATE2_REPORT.md](gate2_fairness_study/GATE2_REPORT.md)): the aggregate and minimax allocators chose identical per-cohort bit-widths (zero worst-cohort fairness benefit), and the intersection-full-correct isolation retained only low-fragmentation cohorts (the same base-model confound as Gate 1). Minimax is reported as **negative evidence** for the fairness thesis at this scale — the codec is preserved and no fairness claim is fabricated. See RISK_REGISTER R-09.
 
@@ -169,9 +171,27 @@ uv run python scripts/run_systems_profile.py
 uv run python scripts/export_demo_assets.py   # -> demo_assets/demo.html
 ```
 
-See [PERFORMANCE.md](PERFORMANCE.md) for the measured latency/memory profile,
-honest bottleneck analysis, and troubleshooting guide, and
-[DEMO_SCRIPT.md](DEMO_SCRIPT.md) for the 9-minute demonstration script.
+### Release documents
+
+| Document | What it is |
+|---|---|
+| [FINAL_REPORT.md](FINAL_REPORT.md) | Full experimental report: problem, algorithms, derivations, all four gate outcomes, limitations, ethics |
+| [CLAIMS_AUDIT.md](CLAIMS_AUDIT.md) | Every claim labelled measured / derived / subset / future |
+| [REPRODUCIBILITY.md](REPRODUCIBILITY.md) | Fresh-machine guide + 16-point reproducibility checklist |
+| [VIVA_PACK.md](VIVA_PACK.md) | 100 Q&A, proof walkthroughs, failure scenarios, demo recovery plan |
+| [MODEL_CARD.md](MODEL_CARD.md) | Codec card: intended use, evaluation, limits, ethical caveats |
+| [JOURNAL_EXPANSION_PLAN.md](JOURNAL_EXPANSION_PLAN.md) | 4-6 month plan to properly test what the pilot could not |
+| [PERFORMANCE.md](PERFORMANCE.md) | Measured latency/memory profile, bottleneck analysis, troubleshooting |
+| [DEMO_SCRIPT.md](DEMO_SCRIPT.md) | 9-minute demonstration script |
+| [FORMAT.md](FORMAT.md) | FFK1 byte-level format spec with golden vectors |
+
+Verify the release yourself:
+
+```bash
+uv run python scripts/run_release_checklist.py --skip-install   # 8 automated checks
+uv run python scripts/export_release_package.py                 # checksums, bitstreams, vector figures
+shasum -a 256 -c release/CHECKSUMS.sha256                       # verify artifact integrity
+```
 
 The demo runs the capture, encode, decode, and evaluation loop and writes artifacts (manifests and plots) to the `results/` directory.
 

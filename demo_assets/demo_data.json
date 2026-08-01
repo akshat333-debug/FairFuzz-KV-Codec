@@ -38,10 +38,12 @@
     "Prompt 15: IndicLongComp built at pilot scale - journal subset has no real FullKV run yet",
     "Prompt 16: baseline matrix - RateQuant/RDKV/KVTuner/KVmix not reproduced; group-aware pruning not in the automated matrix",
     "Prompt 17: Gate 3 PASS at pilot scale; item-119 interactions now measured (both null)",
+    "Prompt 18: decode-side numbers are attention REPLAY, not serving throughput",
+    "Prompt 19: dashboard is the sanctioned Streamlit fallback, not React/Next.js",
     "Deliberate heuristic ceilings (documented in code with `ponytail:` comments)",
     "Pilot-scale validation (real numbers, too small to generalize) - see RISK_REGISTER R-03",
     "Deferred to later prompts (out of scope through Prompt 6)",
-    "Verification status (through Prompt 17)",
+    "Verification status (through Prompt 19)",
     "Resolved earlier (was pending, now done)"
   ]
 }
