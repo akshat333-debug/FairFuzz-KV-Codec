@@ -122,3 +122,58 @@ def test_counting_and_aggregation_answers_are_derivable_from_evidence():
     dataset = generate_dataset(groups_per_family=2, seed=3, task_families=(TaskFamily.COUNTING, TaskFamily.AGGREGATION))
     for group in dataset:
         assert 0 <= group.canonical_answer <= 9
+
+
+def test_parallelism_checks_task_family_and_context_length(monkeypatch):
+    """Prompt 15 item 101 names context length and task family among the
+    properties that must stay aligned - both must actually be checked, not
+    just recorded on the schema."""
+    from fairfuzzkv_codec.benchmarks.indic_longcomp.validators import validate_parallelism
+
+    groups = generate_dataset(1, seed=5)
+    report = validate_parallelism(groups[0])
+    names = {r.check_name for r in report.results}
+    assert "task_family_identity" in names
+    assert "context_length_alignment" in names
+    assert report.passed
+
+
+def test_task_family_mismatch_is_caught():
+    from fairfuzzkv_codec.benchmarks.indic_longcomp.schema import TaskFamily
+    from fairfuzzkv_codec.benchmarks.indic_longcomp.validators import validate_parallelism
+
+    group = generate_dataset(1, seed=6)[0]
+    lang = next(iter(group.variants))
+    other = next(f for f in TaskFamily if f != group.task_family)
+    group.variants[lang].task_family = other
+
+    report = validate_parallelism(group)
+    assert not report.passed
+    failed = {r.check_name for r in report.results if not r.passed}
+    assert "task_family_identity" in failed
+
+
+def test_context_length_alignment_flags_absurd_ratio():
+    from fairfuzzkv_codec.benchmarks.indic_longcomp.validators import (
+        MAX_CONTEXT_TOKEN_RATIO,
+        validate_parallelism,
+    )
+
+    group = generate_dataset(1, seed=7)[0]
+    langs = list(group.variants)
+    for i, lang in enumerate(langs):
+        group.variants[lang].context_token_count = 10
+    # one variant absurdly longer than the rest -> rendering bug, must fail
+    group.variants[langs[0]].context_token_count = int(10 * MAX_CONTEXT_TOKEN_RATIO) + 10
+
+    report = validate_parallelism(group)
+    failed = {r.check_name for r in report.results if not r.passed}
+    assert "context_length_alignment" in failed
+
+
+def test_context_length_unmeasured_is_reported_not_silently_passed():
+    from fairfuzzkv_codec.benchmarks.indic_longcomp.validators import validate_parallelism
+
+    group = generate_dataset(1, seed=8)[0]  # no tokenizer -> token counts are 0
+    result = next(r for r in validate_parallelism(group).results if r.check_name == "context_length_alignment")
+    assert "not measured" in (result.detail or "")

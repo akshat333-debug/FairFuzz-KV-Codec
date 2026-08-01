@@ -1,9 +1,20 @@
-"""Project name/claims switch, driven automatically by the frozen Gate 4
-decision (`evaluation.gate4.Gate4Decision`). Per Prompt 14's non-negotiable
+"""Project claims switch, driven automatically by the frozen Gate 4 decision
+(`evaluation.gate4.Gate4Decision`). Per Prompt 14's non-negotiable
 instruction ("do not postpone the naming decision"), this is applied by
 `scripts/run_gate4_study.py` immediately after the decision is frozen, not
-as a manual follow-up - the project name and claim framing FOLLOW the
-decision file, the decision file never follows a desired name.
+as a manual follow-up - the claim framing FOLLOWS the decision file, and the
+decision file never follows a desired framing.
+
+**Project name is a fixed, owner-chosen constant** (`FairFuzzKV-Codec`) and
+is deliberately NOT switched by the gate outcome. Renaming the project was
+reconsidered and rejected by the project owner: the distribution name is
+identity/branding, not a scientific claim, and swapping it also broke the
+build (the import package is `fairfuzzkv_codec`, so a `fragkv-codec`
+distribution name made uv_build look for a `src/fragkv_codec/` that does not
+exist). What must follow the evidence is the CLAIM FRAMING, and it still
+does - a Gate 4 FAIL is reported below in full, unsoftened. Keeping the name
+is explicitly NOT a claim that fuzzy scoring was validated; see
+`GATE4_REPORT.md`, RISK_REGISTER R-10, CLAIMS_LEDGER C-23.
 """
 
 import re
@@ -43,14 +54,16 @@ _IDENTITY_BY_DECISION: Dict[Gate4Decision, ProjectIdentity] = {
     ),
     Gate4Decision.FAIL: ProjectIdentity(
         decision=Gate4Decision.FAIL,
-        display_name="FragKV-Codec",
-        package_name="fragkv-codec",
+        display_name="FairFuzzKV-Codec",
+        package_name="fairfuzzkv-codec",
         claim_framing=(
             "Fuzzy repair-priority scoring did not beat no-repair and/or the simpler competitors "
-            "(Gate 4 FAIL) - negative evidence, not fabricated into a claim. The codec (capture, "
-            "Unicode grouping, fragility estimation, quantization, pruning, allocation, metadata "
-            "coding, decoder) is preserved and renamed to reflect its surviving, evidence-grounded "
-            "contribution: tokenizer-fragmentation-aware KV compression."
+            "(Gate 4 FAIL) - negative evidence, not fabricated into a claim. The 'Fuzzy' in the "
+            "project name is historical identity only and must NOT be read as a validated claim: "
+            "the fuzzy scorer remains in the codebase as an optional, NON-DEFAULT scorer. The codec "
+            "(capture, Unicode grouping, fragility estimation, quantization, pruning, allocation, "
+            "metadata coding, decoder) is unaffected and preserved; its surviving, evidence-grounded "
+            "contribution is tokenizer-fragmentation-aware KV compression."
         ),
     ),
 }

@@ -1,6 +1,6 @@
 {
   "gate4_decision": "FAIL",
-  "display_name": "FragKV-Codec",
-  "package_name": "fragkv-codec",
-  "claim_framing": "Fuzzy repair-priority scoring did not beat no-repair and/or the simpler competitors (Gate 4 FAIL) - negative evidence, not fabricated into a claim. The codec (capture, Unicode grouping, fragility estimation, quantization, pruning, allocation, metadata coding, decoder) is preserved and renamed to reflect its surviving, evidence-grounded contribution: tokenizer-fragmentation-aware KV compression."
+  "display_name": "FairFuzzKV-Codec",
+  "package_name": "fairfuzzkv-codec",
+  "claim_framing": "Fuzzy repair-priority scoring did not beat no-repair and/or the simpler competitors (Gate 4 FAIL) - negative evidence, not fabricated into a claim. The 'Fuzzy' in the project name is historical identity only and must NOT be read as a validated claim: the fuzzy scorer remains in the codebase as an optional, NON-DEFAULT scorer. The codec (capture, Unicode grouping, fragility estimation, quantization, pruning, allocation, metadata coding, decoder) is unaffected and preserved; its surviving, evidence-grounded contribution is tokenizer-fragmentation-aware KV compression."
 }

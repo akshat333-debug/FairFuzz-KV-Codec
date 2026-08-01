@@ -1,19 +1,21 @@
-# FragKV-Codec
+# FairFuzzKV-Codec
 
-> **Renamed from FairFuzzKV-Codec.** The rename is automatic, not editorial:
-> `core/naming.py` maps the frozen Gate 4 decision to a project identity, and
-> `scripts/run_gate4_study.py` applies it to `pyproject.toml` right after the
-> decision is frozen (see [PROJECT_IDENTITY.json](PROJECT_IDENTITY.json) and
-> [GATE4_REPORT.md](GATE4_REPORT.md)). Gate 4 came back **FAIL**: the Module 3
-> fuzzy repair-priority scorer did not beat no-repair, so the "fuzzy" claim is
-> dropped and the name now reflects the surviving, evidence-grounded
-> contribution — tokenizer-fragmentation-aware KV compression. The Python
-> import path (`fairfuzzkv_codec`) is unchanged; renaming ~100 files' imports
-> for a metadata/display-name switch was judged out of scope for what the
-> acceptance gate ("project name and claims automatically follow the decision
-> file") actually requires — see PENDING.md.
+> **The project name is a fixed, owner-chosen constant — it is NOT evidence.**
+> An earlier revision let the frozen Gate 4 decision rename the project
+> (`FairFuzzKV-Codec` → `FragKV-Codec`); that rename has been reverted by the
+> project owner. A distribution name is identity/branding, not a scientific
+> claim (and the rename also broke the build, since the import package is
+> `fairfuzzkv_codec`). What still follows the evidence automatically is the
+> **claim framing**: `core/naming.py` maps the frozen Gate 4 decision to the
+> wording in [PROJECT_IDENTITY.json](PROJECT_IDENTITY.json).
+>
+> **Gate 4 came back FAIL** ([GATE4_REPORT.md](GATE4_REPORT.md)): the Module 3
+> fuzzy repair-priority scorer did not beat no-repair. The "Fuzzy" in the name
+> is historical only and must **not** be read as a validated claim — the fuzzy
+> scorer remains in the codebase as an optional, **non-default** scorer. See
+> RISK_REGISTER R-10 and CLAIMS_LEDGER C-23.
 
-FragKV-Codec is a research project for memory-conscious compression of Key-Value (KV) caches in Large Language Models.
+FairFuzzKV-Codec is a research project for memory-conscious compression of Key-Value (KV) caches in Large Language Models.
 
 ## Current Project Status: Gate 3 Cross-Model Reproduction Complete, PASS (Prompts 1-17)
 
@@ -111,7 +113,7 @@ We are actively building the infrastructure and baseline evaluation pipeline. Th
     - Real Qwen2.5-0.5B pilot comparing `{no_repair, fuzzy, monotone, knapsack, logistic}` at 2 budgets (retention ratio 0.3/0.5) x 2 seeds (42, 7) x the 4 `n_g` fragmentation cohorts, using REAL per-position candidate signals (fragility from Module 2, attention mass from a real captured audited head via a `q_proj` forward hook + `output_attentions=True`, surface-group token count, positional staleness) — never synthetic inputs (contrast with Prompt 13's demo). Frozen pre-registered thresholds tested on synthetic fixtures before the real run (`tests/evaluation/test_gate4.py`); frozen setup in [GATE4_CONFIG.md](GATE4_CONFIG.md).
     - `ExplicitMaskCodec` (`codec/explicit_mask.py`) applies a caller-supplied retention mask instead of an internally-computed one, so every scorer's bits/element is matched BY CONSTRUCTION (Prompt 9's repair swaps are budget-neutral) — verified true in all 80 real runs, not assumed.
     - Result: fuzzy did not beat no-repair on task accuracy (-0.013 mean gain, 25% consistent) or worst-cohort degradation (-0.050 mean gain — fuzzy INCREASED the worst cohort's degradation, an overprotection failure mode per item 98), and was statistically indistinguishable from its simplest competitors (95% CI [-0.050, 0.037]). Full report: [GATE4_REPORT.md](GATE4_REPORT.md); raw predictions: [gate4_fairness_study/predictions.jsonl](gate4_fairness_study/predictions.jsonl).
-    - **Automatic naming/claims switch** (`core/naming.py`): the frozen decision rewrote `pyproject.toml`'s package name to `fragkv-codec` and wrote [PROJECT_IDENTITY.json](PROJECT_IDENTITY.json) — not a manual follow-up. Two report templates ([GATE4_REPORT_PASS_TEMPLATE.md](GATE4_REPORT_PASS_TEMPLATE.md), [GATE4_REPORT_FAIL_TEMPLATE.md](GATE4_REPORT_FAIL_TEMPLATE.md)) were prepared before the run so either outcome could be completed immediately.
+    - **Automatic naming/claims switch** (`core/naming.py`): the frozen decision drives the claim framing and writes [PROJECT_IDENTITY.json](PROJECT_IDENTITY.json) — not a manual follow-up. (The project *name* is deliberately excluded from the switch: it is owner-chosen identity, not evidence, and an earlier auto-rename broke the build.) Two report templates ([GATE4_REPORT_PASS_TEMPLATE.md](GATE4_REPORT_PASS_TEMPLATE.md), [GATE4_REPORT_FAIL_TEMPLATE.md](GATE4_REPORT_FAIL_TEMPLATE.md)) were prepared before the run so either outcome could be completed immediately.
 
 16. **Prompt 15 — IndicLongComp Parallel Multilingual and Code-Mixed Benchmark** (`fairfuzzkv_codec.benchmarks.indic_longcomp`)
     - Four language/code-mix conditions (English, Hindi, Hinglish, Telugu-English) x five task families (retrieval, multi-hop, comparison, counting, evidence aggregation), built from hand-designed parallel templates. **Content is LLM-authored, not sourced from any external corpus (MLRBench or otherwise — no verified network/license access was available) and not professionally translated or reviewed** — stated explicitly in every dataset card, never presented as sourced/reviewed content.

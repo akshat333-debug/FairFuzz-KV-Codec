@@ -36,6 +36,7 @@ def validate_parallelism(group: IndicGroup) -> GroupValidationReport:
         ("evidence_count_identity", lambda v: v.evidence_count, group.evidence_count),
         ("evidence_position_identity", lambda v: v.evidence_position_index, group.evidence_position_index),
         ("distractor_count_identity", lambda v: v.distractor_count, group.distractor_count),
+        ("task_family_identity", lambda v: v.task_family, group.task_family),
     )
     for check_name, extract, expected in identity_checks:
         mismatch = next(
@@ -50,7 +51,40 @@ def validate_parallelism(group: IndicGroup) -> GroupValidationReport:
                 detail=f"{lang.value}: {actual} != group {expected}",
             ))
 
+    results.append(_context_length_alignment(group))
+
     return GroupValidationReport(group_id=group.group_id, passed=all(r.passed for r in results), results=results)
+
+
+# Cross-language token-count inflation is the phenomenon this project STUDIES
+# (see fragility_estimation's `token_cost_inflation`), so demanding equal token
+# counts across languages would be wrong - Indic scripts legitimately tokenize
+# longer than English for the same content. What "context length aligned"
+# (Prompt 15 item 101) can mean here is: every variant is built from the SAME
+# number of facts (guaranteed by construction and by the evidence/distractor
+# identity checks above), and no variant's length is so far off the others that
+# it signals a rendering bug rather than tokenizer inflation. This bound is a
+# sanity ceiling, not a fairness claim.
+MAX_CONTEXT_TOKEN_RATIO = 4.0
+
+
+def _context_length_alignment(group: IndicGroup) -> ValidationResult:
+    counts = {lang: v.context_token_count for lang, v in group.variants.items()}
+    measured = [c for c in counts.values() if c > 0]
+    if not measured:
+        # no tokenizer was supplied at generation time - report that honestly
+        # instead of silently "passing" an unmeasured check.
+        return ValidationResult(
+            passed=True, check_name="context_length_alignment",
+            detail="not measured (no tokenizer supplied at generation time)",
+        )
+    ratio = max(measured) / max(1, min(measured))
+    detail = (
+        f"token counts by language={{{', '.join(f'{k.value}: {v}' for k, v in sorted(counts.items(), key=lambda kv: kv[0].value))}}}, "
+        f"max/min ratio={ratio:.2f} (ceiling {MAX_CONTEXT_TOKEN_RATIO}; cross-language "
+        f"inflation is expected and is itself under study, not a defect)"
+    )
+    return ValidationResult(passed=ratio <= MAX_CONTEXT_TOKEN_RATIO, check_name="context_length_alignment", detail=detail)
 
 
 def validate_answer_auditability(group: IndicGroup) -> ValidationResult:

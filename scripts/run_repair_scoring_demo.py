@@ -8,6 +8,7 @@ invented.
 import json
 import sys
 from pathlib import Path
+from typing import Any, Dict, List
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -17,7 +18,7 @@ from fairfuzzkv_codec.dashboard.plots import plot_fuzzy_membership_functions  # 
 from fairfuzzkv_codec.pruning.repair import RepairContract  # noqa: E402
 from fairfuzzkv_codec.repair_scoring.ablation import ScorerConfig, ScorerType, run_ablation, score_candidates  # noqa: E402
 from fairfuzzkv_codec.repair_scoring.competitors import monotone_weighted_score  # noqa: E402
-from fairfuzzkv_codec.repair_scoring.fuzzy import fuzzy_priority_scores  # noqa: E402
+from fairfuzzkv_codec.repair_scoring.fuzzy import fuzzy_priority_scores, fuzzy_repair_priority  # noqa: E402
 from fairfuzzkv_codec.repair_scoring.inputs import ScorerInputs, fit_input_normalizers, normalize_inputs  # noqa: E402
 from fairfuzzkv_codec.repair_scoring.integration import propose_repair_swap  # noqa: E402
 from fairfuzzkv_codec.repair_scoring.sensitivity import (  # noqa: E402
@@ -49,16 +50,59 @@ def main() -> None:
     for name, scores in ablation.items():
         print(f"  {name}: {[round(s, 3) for s in scores[:5].tolist()]}")
 
+    # Latency/parameter complexity for EVERY scorer in the ablation (not just
+    # fuzzy vs one competitor), so the fuzzy overhead is quantified against all
+    # the alternatives it is being compared against.
     complexity = [
         measure_complexity("fuzzy", fuzzy_priority_scores, normalized_eval, fuzzy_num_parameters()),
         measure_complexity("monotone", monotone_weighted_score, normalized_eval, num_parameters=4),
+        measure_complexity(
+            "logistic",
+            lambda x: score_candidates(x, ScorerConfig(ScorerType.LOGISTIC)),
+            normalized_eval,
+            num_parameters=6,  # 4 field weights + bias + steepness
+        ),
+        measure_complexity(
+            "knapsack",
+            lambda x: score_candidates(x, ScorerConfig(ScorerType.KNAPSACK)),
+            normalized_eval,
+            num_parameters=3,  # value weights over the non-cost fields
+        ),
     ]
+    print("\nscorer complexity (median of repeated timed runs, after warm-up):")
     for report in complexity:
-        print(f"  {report.scorer_name}: {report.latency_seconds_per_candidate:.2e}s/candidate, "
+        print(f"  {report.scorer_name}: {report.latency_seconds_per_candidate:.2e}s/candidate "
+              f"(min {report.latency_min_seconds_per_candidate:.2e}, max {report.latency_max_seconds_per_candidate:.2e}), "
               f"{report.num_parameters} params")
+    fuzzy_lat = complexity[0].latency_seconds_per_candidate
+    cheapest = min(complexity[1:], key=lambda c: c.latency_seconds_per_candidate)
+    print(f"  -> fuzzy inference overhead vs cheapest competitor ({cheapest.scorer_name}): "
+          f"{fuzzy_lat / max(cheapest.latency_seconds_per_candidate, 1e-12):.1f}x")
 
     bp_sensitivity = sensitivity_to_breakpoints(normalized_eval)
     rule_sensitivity = sensitivity_to_rules(normalized_eval)
+
+    # Human-readable rule traces, exported for dashboard inspection (Prompt 13
+    # acceptance gate). Every candidate's full per-rule firing strengths are
+    # written to the artifact; a readable summary of which rules actually fired
+    # is printed for the first few.
+    fuzzy_results = fuzzy_repair_priority(normalized_eval)
+    rule_traces: List[Dict[str, Any]] = [
+        {
+            "candidate_index": i,
+            "inputs": {name: round(float(values[i].item()), 4)
+                       for name, values in normalized_eval.as_dict().items()},
+            "priority": round(r.priority, 4),
+            "fired_rules": [t.to_dict() for t in r.fired_rules()],
+            "all_rules": [t.to_dict() for t in r.rule_trace],
+        }
+        for i, r in enumerate(fuzzy_results)
+    ]
+    print("\nrule traces (first 3 candidates, fired rules only):")
+    for entry in rule_traces[:3]:
+        fired = ", ".join(f"{t['rule_name']}->{t['consequent_level']}@{t['firing_strength']:.2f}"
+                          for t in entry["fired_rules"])
+        print(f"  candidate {entry['candidate_index']}: priority={entry['priority']:.3f} | {fired or 'no rule fired'}")
 
     # end-to-end: fuzzy scorer output drives the UNCHANGED Prompt 9 repair contract.
     q = torch.ones(2, 4)
@@ -91,6 +135,7 @@ def main() -> None:
             "reintroduce": reintroduce, "evict": evict, "swap_accepted": swap_accepted,
             "kept_count_preserved": bool(int((~new_evicted).sum().item()) == int((~evicted0).sum().item())),
         },
+        "rule_traces": rule_traces,
         "membership_plot": membership_plot,
     }
     (out / "scorer_comparison.json").write_text(json.dumps(result, indent=2))

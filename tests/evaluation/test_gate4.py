@@ -132,3 +132,44 @@ def test_decision_is_deterministic_pure_function():
     r2 = decide_gate4(runs, 0.0, 0.1)
     assert r1.decision == r2.decision
     assert r1.reasoning == r2.reasoning
+
+
+def test_gate4_is_reproducible_from_raw_predictions(tmp_path):
+    """Prompt 14 acceptance gate: 'Gate 4 result is reproducible from raw
+    runs.' The decision must be recomputable from the per-example predictions
+    file alone - no model access, no re-running the study."""
+    import json
+
+    from fairfuzzkv_codec.evaluation.gate4 import compute_gate4_from_predictions
+
+    rows = []
+    # 2 budgets x 1 seed; fuzzy strictly worse than no_repair -> FAIL
+    for budget in (0.3, 0.5):
+        for i in range(4):
+            eid = f"g{i}"
+            rows.append({
+                "example_id": eid, "n_g": 1, "budget_retention_ratio": budget, "seed": 42,
+                "system": "full", "correct": True, "bits_per_element": 16.0,
+                "kv_mse": 0.0, "repair_accepted": 0, "repair_attempted": 0,
+            })
+            for system, correct in (
+                ("no_repair", True), ("fuzzy", False),
+                ("monotone", True), ("knapsack", True), ("logistic", True),
+            ):
+                rows.append({
+                    "example_id": eid, "n_g": 1, "budget_retention_ratio": budget, "seed": 42,
+                    "system": system, "correct": correct, "bits_per_element": 4.0,
+                    "kv_mse": 1.0, "repair_accepted": 0, "repair_attempted": 1,
+                })
+
+    path = tmp_path / "predictions.jsonl"
+    path.write_text("\n".join(json.dumps(r) for r in rows))
+
+    report = compute_gate4_from_predictions(str(path), n_boot=100, seed=0)
+    assert report.decision == Gate4Decision.FAIL
+    assert report.mean_accuracy_gain < 0  # fuzzy lost to no_repair on every run
+    assert len(report.runs) == 2  # both budgets recovered from the raw file
+    # and it is deterministic: same file + same seed -> same decision
+    again = compute_gate4_from_predictions(str(path), n_boot=100, seed=0)
+    assert again.decision == report.decision
+    assert again.mean_accuracy_gain == report.mean_accuracy_gain

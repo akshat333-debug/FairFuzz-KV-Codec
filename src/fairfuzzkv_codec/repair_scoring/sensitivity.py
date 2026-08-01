@@ -46,13 +46,21 @@ def sensitivity_to_rules(inputs: ScorerInputs, rules: Optional[List[Rule]] = Non
 @dataclass
 class ComplexityReport:
     scorer_name: str
-    latency_seconds_per_candidate: float
+    latency_seconds_per_candidate: float  # median over `repeats`
     num_parameters: int
+    latency_min_seconds_per_candidate: float = 0.0
+    latency_max_seconds_per_candidate: float = 0.0
+    warm_up_runs: int = 0
+    repeats: int = 1
 
     def to_dict(self) -> Dict[str, object]:
         return {
             "scorer_name": self.scorer_name,
             "latency_seconds_per_candidate": self.latency_seconds_per_candidate,
+            "latency_min_seconds_per_candidate": self.latency_min_seconds_per_candidate,
+            "latency_max_seconds_per_candidate": self.latency_max_seconds_per_candidate,
+            "warm_up_runs": self.warm_up_runs,
+            "repeats": self.repeats,
             "num_parameters": self.num_parameters,
         }
 
@@ -62,12 +70,37 @@ def measure_complexity(
     score_fn: Callable[[ScorerInputs], torch.Tensor],
     inputs: ScorerInputs,
     num_parameters: int,
+    warm_up: int = 2,
+    repeats: int = 5,
 ) -> ComplexityReport:
+    """Measured (not estimated) per-candidate latency. Uses warm-up runs plus
+    repeated timed samples and reports the MEDIAN with min/max, matching the
+    discipline `evaluation/profiler.py` already applies elsewhere - a single
+    un-warmed call is dominated by first-call overhead and is not a usable
+    number to compare scorers with."""
+    if repeats < 1:
+        raise ValueError("repeats must be >= 1")
     n = max(1, inputs.fragility.shape[0])
-    start = time.perf_counter()
-    score_fn(inputs)
-    elapsed = time.perf_counter() - start
-    return ComplexityReport(scorer_name=scorer_name, latency_seconds_per_candidate=elapsed / n, num_parameters=num_parameters)
+
+    for _ in range(max(0, warm_up)):
+        score_fn(inputs)
+
+    samples = []
+    for _ in range(repeats):
+        start = time.perf_counter()
+        score_fn(inputs)
+        samples.append((time.perf_counter() - start) / n)
+    samples.sort()
+
+    return ComplexityReport(
+        scorer_name=scorer_name,
+        latency_seconds_per_candidate=samples[len(samples) // 2],
+        num_parameters=num_parameters,
+        latency_min_seconds_per_candidate=samples[0],
+        latency_max_seconds_per_candidate=samples[-1],
+        warm_up_runs=max(0, warm_up),
+        repeats=repeats,
+    )
 
 
 def fuzzy_num_parameters(rules: Optional[List[Rule]] = None) -> int:

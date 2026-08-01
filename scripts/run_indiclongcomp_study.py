@@ -30,6 +30,14 @@ from fairfuzzkv_codec.benchmarks.indic_longcomp.validators import (  # noqa: E40
 )
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
+# Item 105 asks for fragility distributions + cohort coverage "for each
+# tokenizer family". The project targets two distinct families throughout
+# (see tests/unicode_grouping/test_aligner.py): byte-level BPE and
+# SentencePiece. Both are reported here; tokenization only, no model run.
+FRAGILITY_TOKENIZERS = [
+    ("Qwen/Qwen2.5-0.5B", "byte_level_bpe"),
+    ("hf-internal-testing/tiny-random-LlamaForCausalLM", "sentencepiece"),
+]
 COURSE_GROUPS_PER_FAMILY = 2
 JOURNAL_GROUPS_PER_FAMILY = 10
 SEED = 42
@@ -63,6 +71,22 @@ def _structural_checks(groups, tag: str, other_texts: list) -> dict:
     }
 
 
+def _fragility_across_tokenizer_families(groups, tag: str) -> list:
+    """Item 105: per-language fragility distributions + cohort coverage for
+    EVERY tokenizer family, not just the study model's. Tokenization only -
+    no model forward passes - so this is cheap enough to run on both the
+    course and journal subsets."""
+    distributions: list = []
+    for tokenizer_name, family in FRAGILITY_TOKENIZERS:
+        tok = AutoTokenizer.from_pretrained(tokenizer_name)
+        per_language = per_language_fragility(groups, tok, tokenizer_name=tokenizer_name)
+        for lang, dist in per_language.items():
+            print(f"  [{tag}] fragility[{family}/{lang.value}]: mean={dist.mean_score:.3f} "
+                  f"n={dist.num_units_scored} cohorts={dist.cohort_counts}")
+        distributions.extend(per_language.values())
+    return distributions
+
+
 def main() -> None:
     out = Path("indic_longcomp_study")
     (out / "course").mkdir(parents=True, exist_ok=True)
@@ -76,15 +100,13 @@ def main() -> None:
     print(f"course: generated {len(course_groups)} groups ({len(course_groups) * 4} variants)")
     course_checks = _structural_checks(course_groups, "course", other_texts)
 
-    fragility = per_language_fragility(course_groups, tokenizer, tokenizer_name=MODEL_NAME)
-    for lang, dist in fragility.items():
-        print(f"  fragility[{lang.value}]: mean={dist.mean_score:.3f} n={dist.num_units_scored} cohorts={dist.cohort_counts}")
+    course_fragility = _fragility_across_tokenizer_families(course_groups, "course")
 
     course_card = build_dataset_card(
         course_groups, seed=SEED, scale="course",
         contamination_overlaps=course_checks["contamination_overlap_count"],
         contamination_compared_against=course_checks["contamination_compared_against"],
-        fragility_distributions=list(fragility.values()),
+        fragility_distributions=course_fragility,
     )
     write_dataset(course_groups, course_card, out / "course")
 
@@ -117,10 +139,12 @@ def main() -> None:
     journal_groups = generate_dataset(JOURNAL_GROUPS_PER_FAMILY, seed=SEED, tokenizer=tokenizer)
     print(f"journal: generated {len(journal_groups)} groups ({len(journal_groups) * 4} variants) - structural validation only")
     journal_checks = _structural_checks(journal_groups, "journal", other_texts)
+    journal_fragility = _fragility_across_tokenizer_families(journal_groups, "journal")
     journal_card = build_dataset_card(
         journal_groups, seed=SEED, scale="journal",
         contamination_overlaps=journal_checks["contamination_overlap_count"],
         contamination_compared_against=journal_checks["contamination_compared_against"],
+        fragility_distributions=journal_fragility,
     )
     write_dataset(journal_groups, journal_card, out / "journal")
     (out / "journal" / "structural_checks.json").write_text(json.dumps(journal_checks, indent=2), encoding="utf-8")

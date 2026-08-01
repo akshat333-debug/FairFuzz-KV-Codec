@@ -86,12 +86,40 @@ FullKV (lossless) accuracy by fragmentation level, both families:
 
 The qualitative Gate 1/Gate 2 pattern reproduces across both tested families. This still does NOT establish a universal claim beyond these two families/scales - see each family's own Gate 1/Gate 2 report for the underlying finding's own strength. Additionally: fragility cohort risk-band assignment does NOT transfer between these tokenizer families (cross-tokenizer stability below the universal-agreement threshold) - do not claim a universal risk threshold; cohorts require per-tokenizer recalibration.
 
-## Scope deferred (documented, not hidden)
+## Model family x allocator, and quantizer type x cohort (interactions, item 119)
 
-Per GATE3_CONFIG.md: **model family x allocator** and **quantizer type x
-cohort** interaction effects (Prompt 17 item 119) were NOT attempted here -
-both would require re-running the Prompt 10/11 allocator study on
-TinyLlama, beyond this session's compute budget. Gate 1/Gate 2 pilot scale
+An earlier revision deferred these two interactions as needing "a second full
+allocator study" on TinyLlama. **That cost estimate was wrong**: the Prompt
+10/11 allocator path is one prefill capture plus quantize/dequantize
+calibration and never runs autoregressive generation, so both interactions are
+cheap to measure directly. They now are, on the same two frozen families
+(`scripts/run_gate3_interactions.py` -> `gate3_study/gate3_interactions.json`).
+
+**Model family x allocator** - measured, no interaction:
+
+| Family | minimax improves worst-cohort | aggregate vs minimax allocations |
+|---|---|---|
+| Qwen/Qwen2.5-0.5B (BPE) | True | **identical** |
+| TinyLlama-1.1B-Chat (SentencePiece) | True | **identical** |
+
+The aggregate and minimax allocators selected *identical* allocations on BOTH
+families. This independently corroborates the Gate 2 FAIL (RISK_REGISTER R-09)
+and extends it: the "allocators do not diverge" result is **not Qwen-specific**,
+it reproduces across tokenizer families. Allocator behaviour is consistent
+across families - which is a reproducibility finding, not a fairness win.
+
+**Quantizer type x cohort** - measured, no interaction: across the menu
+{int4, int8, LBG(vd8,cb16), LBG(vd8,cb64)}, `int8` had the lowest distortion in
+**every** cohort on both families (24/24 Qwen layers, 22/22 TinyLlama layers).
+No crossover, so there is no quantizer-by-cohort interaction to report at this
+scale - a uniform winner, stated plainly rather than dressed up as a finding.
+
+Both are single-text, single-budget pilot probes: absence of an interaction
+here is not proof none exists at larger scale.
+
+## Scope note
+
+Gate 1/Gate 2 pilot scale
 on TinyLlama (20 / 16 groups)
 is smaller than Family A's original real runs (200 / 24 groups x 6 runs) -
 explicitly reduced given TinyLlama's ~2x slower CPU forward pass, not

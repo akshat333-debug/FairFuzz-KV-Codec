@@ -62,6 +62,26 @@ def _regime_table(results: list, regime: EvaluationRegime) -> dict:
     return table
 
 
+def _repo_commit() -> str:
+    """Short git SHA of the working tree that produced these cards, or an
+    explicit marker when git metadata is unavailable - never a fabricated or
+    silently-omitted provenance field."""
+    import subprocess
+
+    try:
+        sha = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=5, check=True,
+        ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True, text=True, timeout=5, check=True,
+        ).stdout.strip()
+        return f"{sha}{'-dirty' if dirty else ''}"
+    except Exception:  # noqa: BLE001
+        return "unavailable (not a git checkout or git not on PATH)"
+
+
 def main() -> None:
     out = Path("baseline_matrix_study")
     out.mkdir(exist_ok=True)
@@ -118,8 +138,19 @@ def main() -> None:
     (out / "raw_results.jsonl").write_text(
         "\n".join(json.dumps(r.to_dict()) for r in all_results), encoding="utf-8",
     )
+    # Item 113 asks cards to carry commit/version provenance. The per-baseline
+    # `version_note` records the BASELINE's provenance (paper/algorithm); this
+    # adds the repo commit that actually produced these cards, so a card can
+    # always be traced back to the exact code that generated it.
     (out / "baseline_cards.json").write_text(
-        json.dumps([c.to_dict() for c in all_cards], indent=2), encoding="utf-8",
+        json.dumps(
+            {
+                "generated_by_repo_commit": _repo_commit(),
+                "cards": [c.to_dict() for c in all_cards],
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
     )
     print(f"\nsaved -> {out}")
 

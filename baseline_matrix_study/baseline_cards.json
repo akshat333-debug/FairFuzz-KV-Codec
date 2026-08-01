@@ -1,123 +1,126 @@
-[
-  {
-    "name": "UniformINT8/INT4",
-    "regime": "compression_quantization",
-    "reproduction_status": "faithful",
-    "version_note": "This project's own grade-floor baseline codec (Prompt 1-2), not a literature reproduction.",
-    "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
-    "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
-    "deviations": "",
-    "limitations": "Per-tensor scale only; no percentile/MSE-optimal clipping.",
-    "nearest_faithful_configuration": ""
-  },
-  {
-    "name": "FairFuzzKV-Scalar",
-    "regime": "compression_quantization",
-    "reproduction_status": "faithful",
-    "version_note": "This project's own stronger scalar codec (Prompt 6): symmetric INT4/INT8, genuine nibble packing, percentile-clip capable.",
-    "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
-    "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
-    "deviations": "",
-    "limitations": "",
-    "nearest_faithful_configuration": ""
-  },
-  {
-    "name": "FairFuzzKV-LBG",
-    "regime": "compression_quantization",
-    "reproduction_status": "faithful",
-    "version_note": "This project's own LBG vector-quantization codec (Prompt 7), fixed config vector_dim=2/codebook_size=256.",
-    "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
-    "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
-    "deviations": "Fixed (vector_dim, codebook_size) rather than dynamically tuned per target bits/element - LBG's discrete grid makes exact tuning impractical; reported bits/element may miss the run's target and is marked unmatched rather than hidden.",
-    "limitations": "Self-calibrates on the same tensor it encodes (no separate calibration split in this quick per-example comparison) - codebook overhead is still fully counted, but this is not the leakage-safe calibration protocol used in lbg_benchmark/.",
-    "nearest_faithful_configuration": ""
-  },
-  {
-    "name": "TopK-L2",
-    "regime": "prefill_selection",
-    "reproduction_status": "faithful",
-    "version_note": "This project's own grade-floor magnitude baseline (Prompt 2): retains highest-L2-norm token representations.",
-    "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
-    "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
-    "deviations": "",
-    "limitations": "Ignores attention entirely - a pure representation-magnitude heuristic.",
-    "nearest_faithful_configuration": ""
-  },
-  {
-    "name": "SnapKV",
-    "regime": "prefill_selection",
-    "reproduction_status": "approximate",
-    "version_note": "Li et al. 2024 - core mechanism (observation-window attention voting + 1D max-pooling before top-k). No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
-    "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
-    "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
-    "deviations": "observation_window=16, pooling_kernel=5 are this implementation's best-effort defaults, not verified against the original reference code.",
-    "limitations": "Position-level (mean-aggregated across layers/heads), not the original's exact per-head pooling if that differs.",
-    "nearest_faithful_configuration": ""
-  },
-  {
-    "name": "PyramidKV",
-    "regime": "prefill_selection",
-    "reproduction_status": "approximate",
-    "version_note": "2024 - core mechanism (per-layer pyramid retention budget schedule, more budget for early layers). No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
-    "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
-    "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
-    "deviations": "pyramid_ratio=2.0 (linear interpolation of per-layer multiplier) is this implementation's best-effort default, not verified against the original reference code's exact schedule.",
-    "limitations": "Requires a 2D per-layer mask (ExplicitMaskCodec extension); within-layer selection is plain top-attention-mass, not any additional intra-layer heuristic the original might use.",
-    "nearest_faithful_configuration": ""
-  },
-  {
-    "name": "H2O",
-    "regime": "decode_time_selection",
-    "reproduction_status": "approximate",
-    "version_note": "Zhang et al. 2023 - core mechanism (union of heavy-hitter cumulative-attention-mass positions and a fixed recent window). No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
-    "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
-    "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
-    "deviations": "heavy_ratio/recent_ratio scaled from the single target retention ratio (0.7x / 0.5x split) rather than the original's own budget-split hyperparameter, which was not verified against reference code.",
-    "limitations": "DECODE-TIME regime only - never compared against prefill-time selection results in the same table (item 108). Applied here to a single prefill capture as a structural stand-in for iterative decode-time eviction, since this project's runners do real single-shot generation, not long multi-step decode loops.",
-    "nearest_faithful_configuration": ""
-  },
-  {
-    "name": "RateQuant",
-    "regime": "compression_quantization",
-    "reproduction_status": "not_reproduced",
-    "version_note": "Name refers to a rate-distortion-optimized quantization method; the exact allocation formula could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
-    "model_support": "N/A - not implemented",
-    "context_limit_note": "N/A",
-    "deviations": "Not implemented under this name.",
-    "limitations": "Not reproduced - do not cite results under the name RateQuant.",
-    "nearest_faithful_configuration": "This project's own Prompt 10 aggregate rate-distortion allocator (`fairfuzzkv_codec.allocation`) solves the conceptually similar problem (minimize distortion subject to a total bit budget) and is a REAL, already-benchmarked deliverable (see allocation_study/) - but it is this project's own method, not a reproduction of a paper named RateQuant, and must not be relabeled as such."
-  },
-  {
-    "name": "RDKV",
-    "regime": "compression_quantization",
-    "reproduction_status": "not_reproduced",
-    "version_note": "Exact method specification could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
-    "model_support": "N/A - not implemented",
-    "context_limit_note": "N/A",
-    "deviations": "Not implemented under this name.",
-    "limitations": "Not reproduced - do not cite results under the name RDKV.",
-    "nearest_faithful_configuration": "This project's rate-distortion allocator (Prompt 10) plus `ScalarQuantCodec` covers the general rate-distortion-vs-KV-quantization design space this name likely refers to, but again is not a verified reproduction of a specific published RDKV method."
-  },
-  {
-    "name": "KVTuner",
-    "regime": "compression_quantization",
-    "reproduction_status": "not_reproduced",
-    "version_note": "Exact per-layer/per-head mixed-precision search procedure could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
-    "model_support": "N/A - not implemented",
-    "context_limit_note": "N/A",
-    "deviations": "Not implemented under this name.",
-    "limitations": "Not reproduced - do not cite results under the name KVTuner.",
-    "nearest_faithful_configuration": "This project's own `BitWidthMap` sparse per-layer/per-head bit-width override mechanism (Prompt 6, `ScalarQuantCodec`) already supports mixed-precision configuration search; it is the nearest REAL functionality in this codebase, not a verified reproduction of KVTuner's specific search algorithm."
-  },
-  {
-    "name": "KVmix",
-    "regime": "compression_quantization",
-    "reproduction_status": "not_reproduced",
-    "version_note": "Exact K/V-differentiated mixed-precision policy could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
-    "model_support": "N/A - not implemented",
-    "context_limit_note": "N/A",
-    "deviations": "Not implemented under this name.",
-    "limitations": "Not reproduced - do not cite results under the name KVmix.",
-    "nearest_faithful_configuration": "This project's `ScalarQuantCodec` already supports independent K/V bit-width configuration (Prompt 6) - the nearest real functionality, not a verified reproduction of KVmix's specific policy for choosing those bit-widths."
-  }
-]
+{
+  "generated_by_repo_commit": "a7fd3a8-dirty",
+  "cards": [
+    {
+      "name": "UniformINT8/INT4",
+      "regime": "compression_quantization",
+      "reproduction_status": "faithful",
+      "version_note": "This project's own grade-floor baseline codec (Prompt 1-2), not a literature reproduction.",
+      "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
+      "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
+      "deviations": "",
+      "limitations": "Per-tensor scale only; no percentile/MSE-optimal clipping.",
+      "nearest_faithful_configuration": ""
+    },
+    {
+      "name": "FairFuzzKV-Scalar",
+      "regime": "compression_quantization",
+      "reproduction_status": "faithful",
+      "version_note": "This project's own stronger scalar codec (Prompt 6): symmetric INT4/INT8, genuine nibble packing, percentile-clip capable.",
+      "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
+      "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
+      "deviations": "",
+      "limitations": "",
+      "nearest_faithful_configuration": ""
+    },
+    {
+      "name": "FairFuzzKV-LBG",
+      "regime": "compression_quantization",
+      "reproduction_status": "faithful",
+      "version_note": "This project's own LBG vector-quantization codec (Prompt 7), fixed config vector_dim=2/codebook_size=256.",
+      "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
+      "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
+      "deviations": "Fixed (vector_dim, codebook_size) rather than dynamically tuned per target bits/element - LBG's discrete grid makes exact tuning impractical; reported bits/element may miss the run's target and is marked unmatched rather than hidden.",
+      "limitations": "Self-calibrates on the same tensor it encodes (no separate calibration split in this quick per-example comparison) - codebook overhead is still fully counted, but this is not the leakage-safe calibration protocol used in lbg_benchmark/.",
+      "nearest_faithful_configuration": ""
+    },
+    {
+      "name": "TopK-L2",
+      "regime": "prefill_selection",
+      "reproduction_status": "faithful",
+      "version_note": "This project's own grade-floor magnitude baseline (Prompt 2): retains highest-L2-norm token representations.",
+      "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
+      "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
+      "deviations": "",
+      "limitations": "Ignores attention entirely - a pure representation-magnitude heuristic.",
+      "nearest_faithful_configuration": ""
+    },
+    {
+      "name": "SnapKV",
+      "regime": "prefill_selection",
+      "reproduction_status": "approximate",
+      "version_note": "Li et al. 2024 - core mechanism (observation-window attention voting + 1D max-pooling before top-k). No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
+      "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
+      "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
+      "deviations": "observation_window=16, pooling_kernel=5 are this implementation's best-effort defaults, not verified against the original reference code.",
+      "limitations": "Position-level (mean-aggregated across layers/heads), not the original's exact per-head pooling if that differs.",
+      "nearest_faithful_configuration": ""
+    },
+    {
+      "name": "PyramidKV",
+      "regime": "prefill_selection",
+      "reproduction_status": "approximate",
+      "version_note": "2024 - core mechanism (per-layer pyramid retention budget schedule, more budget for early layers). No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
+      "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
+      "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
+      "deviations": "pyramid_ratio=2.0 (linear interpolation of per-layer multiplier) is this implementation's best-effort default, not verified against the original reference code's exact schedule.",
+      "limitations": "Requires a 2D per-layer mask (ExplicitMaskCodec extension); within-layer selection is plain top-attention-mass, not any additional intra-layer heuristic the original might use.",
+      "nearest_faithful_configuration": ""
+    },
+    {
+      "name": "H2O",
+      "regime": "decode_time_selection",
+      "reproduction_status": "approximate",
+      "version_note": "Zhang et al. 2023 - core mechanism (union of heavy-hitter cumulative-attention-mass positions and a fixed recent window). No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
+      "model_support": "Runs against any captured KV cache tensor [layers, batch, heads, seq, head_dim]; validated on Qwen2.5-0.5B in this project's studies.",
+      "context_limit_note": "No hard context-length limit in this implementation beyond available memory; not benchmarked past this project's short (<300 token) study contexts.",
+      "deviations": "heavy_ratio/recent_ratio scaled from the single target retention ratio (0.7x / 0.5x split) rather than the original's own budget-split hyperparameter, which was not verified against reference code.",
+      "limitations": "DECODE-TIME regime only - never compared against prefill-time selection results in the same table (item 108). Applied here to a single prefill capture as a structural stand-in for iterative decode-time eviction, since this project's runners do real single-shot generation, not long multi-step decode loops.",
+      "nearest_faithful_configuration": ""
+    },
+    {
+      "name": "RateQuant",
+      "regime": "compression_quantization",
+      "reproduction_status": "not_reproduced",
+      "version_note": "Name refers to a rate-distortion-optimized quantization method; the exact allocation formula could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
+      "model_support": "N/A - not implemented",
+      "context_limit_note": "N/A",
+      "deviations": "Not implemented under this name.",
+      "limitations": "Not reproduced - do not cite results under the name RateQuant.",
+      "nearest_faithful_configuration": "This project's own Prompt 10 aggregate rate-distortion allocator (`fairfuzzkv_codec.allocation`) solves the conceptually similar problem (minimize distortion subject to a total bit budget) and is a REAL, already-benchmarked deliverable (see allocation_study/) - but it is this project's own method, not a reproduction of a paper named RateQuant, and must not be relabeled as such."
+    },
+    {
+      "name": "RDKV",
+      "regime": "compression_quantization",
+      "reproduction_status": "not_reproduced",
+      "version_note": "Exact method specification could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
+      "model_support": "N/A - not implemented",
+      "context_limit_note": "N/A",
+      "deviations": "Not implemented under this name.",
+      "limitations": "Not reproduced - do not cite results under the name RDKV.",
+      "nearest_faithful_configuration": "This project's rate-distortion allocator (Prompt 10) plus `ScalarQuantCodec` covers the general rate-distortion-vs-KV-quantization design space this name likely refers to, but again is not a verified reproduction of a specific published RDKV method."
+    },
+    {
+      "name": "KVTuner",
+      "regime": "compression_quantization",
+      "reproduction_status": "not_reproduced",
+      "version_note": "Exact per-layer/per-head mixed-precision search procedure could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
+      "model_support": "N/A - not implemented",
+      "context_limit_note": "N/A",
+      "deviations": "Not implemented under this name.",
+      "limitations": "Not reproduced - do not cite results under the name KVTuner.",
+      "nearest_faithful_configuration": "This project's own `BitWidthMap` sparse per-layer/per-head bit-width override mechanism (Prompt 6, `ScalarQuantCodec`) already supports mixed-precision configuration search; it is the nearest REAL functionality in this codebase, not a verified reproduction of KVTuner's specific search algorithm."
+    },
+    {
+      "name": "KVmix",
+      "regime": "compression_quantization",
+      "reproduction_status": "not_reproduced",
+      "version_note": "Exact K/V-differentiated mixed-precision policy could not be verified. No verified network/license access was available in this environment to fetch the original paper or reference implementation - see PENDING.md.",
+      "model_support": "N/A - not implemented",
+      "context_limit_note": "N/A",
+      "deviations": "Not implemented under this name.",
+      "limitations": "Not reproduced - do not cite results under the name KVmix.",
+      "nearest_faithful_configuration": "This project's `ScalarQuantCodec` already supports independent K/V bit-width configuration (Prompt 6) - the nearest real functionality, not a verified reproduction of KVmix's specific policy for choosing those bit-widths."
+    }
+  ]
+}

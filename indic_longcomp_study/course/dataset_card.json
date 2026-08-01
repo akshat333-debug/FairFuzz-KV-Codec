@@ -85,6 +85,63 @@
         "high": 382,
         "critical": 284
       }
+    },
+    {
+      "language": "en",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 786,
+      "mean_score": 0.3326816884769175,
+      "std_score": 0.13541764686324284,
+      "min_score": 0.04575,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 160,
+        "medium+high": 426,
+        "critical": 200
+      }
+    },
+    {
+      "language": "hi",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 1042,
+      "mean_score": 0.44415912393748286,
+      "std_score": 0.10230444778487631,
+      "min_score": 0.09375,
+      "max_score": 0.6125,
+      "cohort_counts": {
+        "low": 128,
+        "medium": 390,
+        "high": 196,
+        "critical": 328
+      }
+    },
+    {
+      "language": "hinglish",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 1042,
+      "mean_score": 0.322902406087195,
+      "std_score": 0.12116128292010558,
+      "min_score": 0.04575,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 224,
+        "medium+high": 556,
+        "critical": 262
+      }
+    },
+    {
+      "language": "te_en",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 906,
+      "mean_score": 0.33053368811100603,
+      "std_score": 0.12592907388910005,
+      "min_score": 0.04575,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 158,
+        "medium+high": 480,
+        "critical": 268
+      }
     }
   ]
 }

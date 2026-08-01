@@ -1,5 +1,5 @@
 [project]
-name = "fragkv-codec"
+name = "fairfuzzkv-codec"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -27,6 +27,13 @@ fairfuzzkv = "fairfuzzkv_codec.cli:app"
 [build-system]
 requires = ["uv_build>=0.11.23,<0.12.0"]
 build-backend = "uv_build"
+
+# The import package is `fairfuzzkv_codec` regardless of the distribution
+# name. Stated explicitly so the build never breaks if `[project] name` is
+# changed (uv_build otherwise infers `src/<normalized-project-name>/`, which
+# silently fails the build when the two diverge).
+[tool.uv.build-backend]
+module-name = "fairfuzzkv_codec"
 
 [dependency-groups]
 dev = [

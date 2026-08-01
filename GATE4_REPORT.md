@@ -50,7 +50,7 @@ claimed superior.
 
 ## Naming / claims
 
-Project name: **FragKV-Codec**. Fuzzy repair-priority scoring did not beat no-repair and/or the simpler competitors (Gate 4 FAIL) - negative evidence, not fabricated into a claim. The codec (capture, Unicode grouping, fragility estimation, quantization, pruning, allocation, metadata coding, decoder) is preserved and renamed to reflect its surviving, evidence-grounded contribution: tokenizer-fragmentation-aware KV compression.
+Project name: **FairFuzzKV-Codec** (unchanged - an owner-chosen constant, not evidence; an earlier auto-rename to FragKV-Codec was reverted because a distribution name is branding, not a scientific claim, and it broke the build). Fuzzy repair-priority scoring did not beat no-repair and/or the simpler competitors (Gate 4 FAIL) - negative evidence, not fabricated into a claim. The 'Fuzzy' in the name is historical identity only and must NOT be read as validation: the fuzzy scorer remains an optional, NON-DEFAULT scorer. The codec (capture, Unicode grouping, fragility estimation, quantization, pruning, allocation, metadata coding, decoder) is unaffected and preserved; its surviving, evidence-grounded contribution is tokenizer-fragmentation-aware KV compression.
 
 ## Power / caveats
 
@@ -66,7 +66,8 @@ Project name: **FragKV-Codec**. Fuzzy repair-priority scoring did not beat no-re
 ## Failure-mode notes (Prompt 14 item 98)
 
 - **Overprotection regressions found: 3/80 pooled (example, budget, seed) cells.** no_repair answered correctly, but fuzzy's accepted repair swap flipped the answer to incorrect, e.g. `g000001_42_ng1` at budget=0.3, seed=42 (KV MSE barely moved: 33.576 -> 33.625, so the regression is a discrete generation-outcome flip, not a large numerical distortion increase - the swap reintroduced a token that changed the model's argmax path).
-- **Accept/reject instability across budgets (same tokenizer/model):** fuzzy's swap-acceptance flipped between budget=0.3 and budget=0.5 for 0/40 (group, seed) pairs. Cross-TOKENIZER stability (item 98's other named failure mode) was not tested in this pilot - only `Qwen/Qwen2.5-0.5B` was used; see GATE4_CONFIG.md.
+- **Accept/reject instability across budgets (same tokenizer/model):** fuzzy's swap-acceptance flipped between budget=0.3 and budget=0.5 for 0/40 (group, seed) pairs. Cross-TOKENIZER stability (item 98's other named failure mode) could not be tested inside this pilot, since it used one model/tokenizer (`Qwen/Qwen2.5-0.5B`); it is measured separately below.
+- **Cross-tokenizer stability, measured** (`scripts/run_cross_tokenizer_stability.py` -> `cross_tokenizer_study/cross_tokenizer_stability.json`): Spearman rank correlation of each scorer's repair-priority ordering for the same surface units under a byte-level-BPE vs a SentencePiece tokenizer, over 6 multilingual/code-mixed texts (no model generation needed - Module 1/2 signals only). Measured: **fuzzy rho=+0.901** (min +0.680), monotone +0.942 (min +0.909), logistic +0.942 (min +0.909), knapsack +0.841 (min +0.553). So fuzzy reorders candidates somewhat more than the monotone/logistic scorers when the tokenizer family changes (delta -0.041) but is more stable than the knapsack ratio; at this sample size that difference is **not** large enough to call fuzzy unstable. Reported as-is: a small-sample stability probe, not a powered study.
 
 See `gate4_fairness_study/predictions.jsonl` (one row per example/budget/
 seed/system, includes `repair_accepted`/`repair_attempted` and `kv_mse`) for

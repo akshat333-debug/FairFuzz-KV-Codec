@@ -61,6 +61,19 @@ needing genuine 4-bit storage; `UniformQuantCodec` remains available for
 existing callers (`baselines.py`, `demo.py`, matched-bit evaluator) that
 don't need packing.
 
+## Prompt 13: fuzzy scoring costs ~200x the simplest competitor (measured)
+
+`repair_scoring_study/scorer_comparison.json` (measured with warm-up +
+repeated timed runs, median reported): fuzzy Mamdani inference costs
+~1.3e-4 s/candidate versus ~6.5e-7 s/candidate for the knapsack and
+monotone scorers - a **~200x latency overhead** for 25 parameters vs 3-6.
+Combined with the Gate 4 FAIL (fuzzy did not beat no-repair or its simpler
+competitors on task accuracy), the honest reading is that fuzzy inference is
+substantially more expensive AND not measurably better on this evidence.
+It stays as an optional, non-default scorer. Note the absolute numbers are
+tiny (sub-millisecond per candidate) and were measured on synthetic
+candidates on CPU, so the ratio matters more than the magnitude.
+
 ## Prompt 13: fuzzy repair-priority scorer validated on synthetic candidates only
 
 `repair_scoring_study/scorer_comparison.json` compares the fuzzy scorer
@@ -73,21 +86,31 @@ was deliberately NOT implemented for the same reason: fitting one against a
 proxy label would fabricate a validation result the project has no real
 data to support. See CLAIMS_LEDGER C-22.
 
-## Prompt 14: Gate 4 FAIL - fuzzy scoring is negative evidence; Python import path NOT renamed
+## Prompt 14: Gate 4 FAIL - fuzzy scoring is negative evidence; project name is NOT switched by the gate
 
 `GATE4_REPORT.md` / RISK_REGISTER R-10: on a real Qwen2.5-0.5B pilot (80
 pooled cells), the fuzzy repair-priority scorer did not beat no-repair and
 was not distinguishable from its simpler competitors. Do not cite fuzzy
-scoring as validated. The automatic naming switch (`core/naming.py`)
-renamed the PyPI/pip distribution name in `pyproject.toml` to
-`fragkv-codec` and wrote `PROJECT_IDENTITY.json`, per the frozen decision -
-but the Python IMPORT path (`fairfuzzkv_codec`, ~100+ source/test files)
-was deliberately left unchanged. Renaming every import statement is a large,
-mechanical, error-prone change disproportionate to what "the project name
-and claims automatically follow the decision file" (Prompt 14's acceptance
-gate) actually requires - it names PROJECT metadata, not the internal
-package layout. If a full package rename is wanted later, it should be its
-own reviewed change, not a side effect of a gate decision script.
+scoring as validated; it stays in the codebase as an optional, NON-DEFAULT
+scorer.
+
+**Naming decision, revised (deliberate deviation from Prompt 14's automatic
+rename).** An earlier revision let the gate rewrite the distribution name to
+`fragkv-codec`. That has been reverted by the project owner and the name is
+now a fixed constant, `FairFuzzKV-Codec` / `fairfuzzkv-codec`, for two
+reasons: (1) a distribution name is identity/branding, not a scientific
+claim, and (2) the rename **broke the build** - `uv_build` infers the module
+directory from the project name, so `fragkv-codec` made it look for a
+`src/fragkv_codec/` that does not exist, and the entire test suite failed to
+install. `pyproject.toml` now pins `[tool.uv.build-backend] module-name`
+explicitly so name and import package can never diverge again, and
+`tests/core/test_naming.py` has a regression guard asserting
+`package_name.replace("-","_") == "fairfuzzkv_codec"` for every decision.
+What still follows the frozen decision automatically is the **claim
+framing** in `PROJECT_IDENTITY.json` - a FAIL is reported as negative
+evidence, and the "Fuzzy" in the name is explicitly documented as historical
+identity, never as validation. The Python import path (`fairfuzzkv_codec`)
+is likewise unchanged.
 
 ## Prompt 15: IndicLongComp built at pilot scale - journal subset has no real FullKV run yet
 
@@ -127,7 +150,7 @@ adapter variant is the natural follow-up, not attempted in this prompt.
 The real run covers one matched-bit target (4.0 bits/element) on one
 course subset - not a budget sweep.
 
-## Prompt 17: Gate 3 PASS at pilot scale; model-family x allocator and quantizer x cohort interactions deferred
+## Prompt 17: Gate 3 PASS at pilot scale; item-119 interactions now measured (both null)
 
 `GATE3_REPORT.md` / RISK_REGISTER R-15: Gate 1 and Gate 2 reproduced in
 decision category across Qwen2.5-0.5B and TinyLlama-1.1B-Chat, but Family
@@ -136,9 +159,16 @@ than Family A's original real runs (200/24 groups x 6 runs) - and Gate 2's
 FAIL on TinyLlama came from a matched-bit-tolerance violation at that small
 scale, not the same "identical allocations" mechanism Qwen showed. Per
 Prompt 17 item 119, **model-family x allocator** and **quantizer-type x
-cohort** interaction effects were NOT attempted - both would need a second
-full Prompt 10/11 allocator study on TinyLlama, beyond this session's
-compute budget. Cohort risk-band assignment does NOT transfer between
+cohort** interactions were initially deferred as needing "a second full
+Prompt 10/11 allocator study on TinyLlama". That estimate was WRONG - the
+allocator path is one prefill capture plus quantize/dequantize calibration,
+with no autoregressive generation - so both were subsequently measured
+(`scripts/run_gate3_interactions.py`). Both came back NULL: aggregate and
+minimax chose identical allocations on both families (corroborating the
+Gate 2 FAIL and showing it is not Qwen-specific), and `int8` won every
+cohort on both families (no quantizer-by-cohort crossover). Single-text,
+single-budget probes - absence of an interaction at this scale is not proof
+none exists. Cohort risk-band assignment does NOT transfer between
 these two tokenizer families (agreement 0.23, well below the 0.7 universal
 threshold) - do not claim a universal risk threshold from Module 2's
 cohorts without re-calibrating per tokenizer family. Also: the FragKV-

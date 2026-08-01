@@ -66,6 +66,33 @@ here: it would mean ~1000 real model forward-pass generations, a real
 compute cost beyond this session's budget, and is left as an explicit,
 documented follow-up rather than silently skipped or estimated.
 
+## Tokenizer-fragility distributions and cohort coverage (item 105)
+
+Both subsets' dataset cards now carry per-language fragility distributions
+and quantile-cohort coverage for **both tokenizer families** the project
+targets - byte-level BPE (`Qwen/Qwen2.5-0.5B`) and SentencePiece
+(`hf-internal-testing/tiny-random-LlamaForCausalLM`) - computed with Module
+2's real pipeline. Tokenization only, no model forward passes, so this is
+cheap enough to cover the journal subset too (an earlier revision reported
+distributions for the course subset under one tokenizer only; the journal
+card's `fragility_distributions` was empty).
+
+Measured mean transparent-risk score per language (course subset; the
+journal subset reproduces the same ordering at ~5x the units):
+
+| Language | byte-level BPE | SentencePiece |
+|---|---|---|
+| en | 0.266 | 0.333 |
+| hi | **0.344** | **0.444** |
+| hinglish | 0.279 | 0.323 |
+| te_en | 0.287 | 0.331 |
+
+Hindi scores the most fragile under both tokenizer families, and every
+language scores more fragile under SentencePiece than under byte-level BPE.
+Reported as a measured property of the generated text under these
+tokenizers - **not** a claim that this fragility causes downstream task
+failure (that would need the journal-scale FullKV run; see Non-claims).
+
 ## Non-claims
 
 This report does not claim IndicLongComp shows (or fails to show) a

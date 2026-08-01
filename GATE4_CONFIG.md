@@ -54,7 +54,7 @@ a project name/claims tuple:
 |---|---|---|
 | PASS | FairFuzzKV-Codec | Fuzzy repair-priority scoring is validated over the simpler competitors |
 | WEAK_PASS | FairFuzzKV-Codec | Fuzzy scoring shows a real but modest/inconsistent benefit - keep the name, soften the claim |
-| FAIL | FragKV-Codec | Fuzzy scoring is negative evidence; the codec (quantization/pruning/allocation/format) is preserved and renamed to reflect the surviving, evidence-grounded contribution (tokenizer-fragmentation-aware compression), not a fabricated fuzzy-fairness win |
+| FAIL | FairFuzzKV-Codec (name unchanged - owner-chosen identity, not evidence) | Fuzzy scoring is negative evidence; the codec (quantization/pruning/allocation/format) is preserved; the fuzzy scorer becomes/stays NON-DEFAULT and the 'Fuzzy' in the name is explicitly not a validated claim, not a fabricated fuzzy-fairness win |
 
 `scripts/run_gate4_study.py` applies this automatically after freezing the
 decision - it is not a manual follow-up step.

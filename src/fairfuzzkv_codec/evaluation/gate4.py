@@ -14,7 +14,7 @@ validated benefit.
 import random
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 # =============================================================================
 # PRE-REGISTERED Gate 4 thresholds (frozen). Do not edit after a real run.
@@ -149,6 +149,96 @@ def paired_bootstrap_fuzzy_vs_best_simple(
     lo = stats[int(0.025 * len(stats))]
     hi = stats[int(0.975 * len(stats)) - 1] if len(stats) > 1 else point
     return point, lo, hi
+
+
+SYSTEMS_FOR_REPRODUCTION = ("no_repair", "fuzzy", "monotone", "knapsack", "logistic")
+BITS_TOLERANCE = 0.5
+
+
+def compute_gate4_from_predictions(predictions_path: str, n_boot: int = 2000, seed: int = 0) -> Gate4Report:
+    """Reproduce the Gate 4 decision from raw per-example predictions ALONE -
+    no model access, no re-running the study (Prompt 14 acceptance gate: "Gate
+    4 result is reproducible from raw runs"). This is the Gate-4 analogue of
+    `scripts.run_gate1_study.compute_gate1_from_predictions`.
+
+    Latency is deliberately not reconstructed: it is a per-scorer property, is
+    recorded in the study artifact, and does NOT enter `decide_gate4` - so its
+    absence cannot change the reproduced decision.
+    """
+    import json
+
+    from fairfuzzkv_codec.evaluation.disparity import compute_disparity
+    from fairfuzzkv_codec.evaluation.isolation import (
+        PredictionRecord as IsoRecord,
+    )
+    from fairfuzzkv_codec.evaluation.isolation import (
+        degradation_per_cohort,
+        full_correct_ids,
+    )
+
+    rows: List[Dict[str, Any]] = []
+    with open(predictions_path) as f:
+        for line in f:
+            if line.strip():
+                rows.append(json.loads(line))
+
+    # group rows into (budget, seed) runs, mirroring the study's own grouping
+    by_run: Dict[Tuple[float, int], List[Dict[str, Any]]] = {}
+    for r in rows:
+        by_run.setdefault((float(r["budget_retention_ratio"]), int(r["seed"])), []).append(r)
+
+    runs: List[RunComparison] = []
+    for (budget, run_seed) in sorted(by_run.keys()):
+        records = by_run[(budget, run_seed)]
+        iso_records = [
+            IsoRecord(
+                example_id=str(r["example_id"]), cohort=str(r["n_g"]), system=str(r["system"]),
+                correct=bool(r["correct"]), bits_per_element=float(r["bits_per_element"]),
+            )
+            for r in records
+        ]
+        fc = full_correct_ids(iso_records)
+
+        # matched-bit check, recomputed from the raw bits/element figures
+        by_example: Dict[str, List[float]] = {}
+        for r in records:
+            if r["system"] == "full":
+                continue
+            by_example.setdefault(str(r["example_id"]), []).append(float(r["bits_per_element"]))
+        matched_ok = all(max(v) - min(v) < BITS_TOLERANCE for v in by_example.values())
+
+        metrics: Dict[str, SystemMetrics] = {}
+        for system in SYSTEMS_FOR_REPRODUCTION:
+            sys_rows = [r for r in records if r["system"] == system]
+            if not sys_rows:
+                continue
+            accuracy = sum(1 for r in sys_rows if r["correct"]) / len(sys_rows)
+            disparity = compute_disparity(degradation_per_cohort(iso_records, system, fc))
+            mean_mse = sum(float(r["kv_mse"]) for r in sys_rows) / len(sys_rows)
+            attempted = sum(int(r["repair_attempted"]) for r in sys_rows)
+            accepted = sum(int(r["repair_accepted"]) for r in sys_rows)
+            metrics[system] = SystemMetrics(
+                system=system, task_accuracy=accuracy,
+                worst_cohort_degradation=disparity.worst_group_drop, cddb=disparity.cddb,
+                mean_kv_mse=mean_mse,
+                repair_accept_rate=(accepted / attempted if attempted > 0 else 0.0),
+                mean_latency_seconds_per_candidate=0.0,  # not needed by decide_gate4
+            )
+        runs.append(RunComparison(budget, run_seed, matched_ok, metrics))
+
+    # paired bootstrap over pooled examples, keyed uniquely per (example, budget, seed)
+    outcomes: Dict[str, Dict[str, bool]] = {}
+    for r in rows:
+        if r["system"] == "full":
+            continue
+        key = f"{r['example_id']}_b{r['budget_retention_ratio']}_s{r['seed']}"
+        outcomes.setdefault(key, {})[str(r["system"])] = bool(r["correct"])
+    complete = {
+        k: v for k, v in outcomes.items()
+        if all(s in v for s in ("fuzzy", "monotone", "knapsack", "logistic"))
+    }
+    _point, lo, hi = paired_bootstrap_fuzzy_vs_best_simple(complete, n_boot=n_boot, seed=seed)
+    return decide_gate4(runs, lo, hi)
 
 
 def decide_gate4(runs: List[RunComparison], ci_low_vs_best_simple: float, ci_high_vs_best_simple: float) -> Gate4Report:

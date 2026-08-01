@@ -25,5 +25,123 @@
   "contamination_check_note": "Checked against 800 other in-repo generated texts (FragKV-MinPairs); 0 verbatim overlaps found. This is a same-repo self-check ONLY - it cannot and does not verify against any model's actual pretraining corpus, which is not available to check against (documented gap, not assumed clean).",
   "dedup_note": "Exact-duplicate context text checked via sha256 across every (group, language) pair - see validators.find_duplicate_texts.",
   "parallelism_check_note": "Every group's language variants share the same drawn canonical_answer, evidence_count, evidence_position_index, and distractor_count by construction (one shared random draw rendered into all 4 languages), verified per-group by validators.validate_parallelism, not merely assumed from generation.",
-  "fragility_distributions": []
+  "fragility_distributions": [
+    {
+      "language": "en",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 3966,
+      "mean_score": 0.26601849559852325,
+      "std_score": 0.08776774519485993,
+      "min_score": 0.09375,
+      "max_score": 0.44375,
+      "cohort_counts": {
+        "low": 56,
+        "medium": 1496,
+        "high": 1405,
+        "critical": 1009
+      }
+    },
+    {
+      "language": "hi",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 5258,
+      "mean_score": 0.34359484908721066,
+      "std_score": 0.08099243486399968,
+      "min_score": 0.09375,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 553,
+        "medium": 2056,
+        "high": 994,
+        "critical": 1655
+      }
+    },
+    {
+      "language": "hinglish",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 5258,
+      "mean_score": 0.2782681729091187,
+      "std_score": 0.07391014200363825,
+      "min_score": 0.09375,
+      "max_score": 0.36875,
+      "cohort_counts": {
+        "low": 1103,
+        "medium": 772,
+        "high": 1948,
+        "critical": 1435
+      }
+    },
+    {
+      "language": "te_en",
+      "tokenizer_name": "Qwen/Qwen2.5-0.5B",
+      "num_units_scored": 4572,
+      "mean_score": 0.2863271845137575,
+      "std_score": 0.07655923588107973,
+      "min_score": 0.09375,
+      "max_score": 0.36875,
+      "cohort_counts": {
+        "low": 1142,
+        "medium": 77,
+        "high": 1928,
+        "critical": 1425
+      }
+    },
+    {
+      "language": "en",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 3966,
+      "mean_score": 0.3335383179646039,
+      "std_score": 0.13562654268806945,
+      "min_score": 0.04575,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 808,
+        "medium+high": 2149,
+        "critical": 1009
+      }
+    },
+    {
+      "language": "hi",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 5258,
+      "mean_score": 0.44479963275915163,
+      "std_score": 0.10183249104931588,
+      "min_score": 0.09375,
+      "max_score": 0.6125,
+      "cohort_counts": {
+        "low": 616,
+        "medium": 1998,
+        "high": 989,
+        "critical": 1655
+      }
+    },
+    {
+      "language": "hinglish",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 5258,
+      "mean_score": 0.32355481533807895,
+      "std_score": 0.12139305206865472,
+      "min_score": 0.04575,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 1131,
+        "medium+high": 2784,
+        "critical": 1343
+      }
+    },
+    {
+      "language": "te_en",
+      "tokenizer_name": "hf-internal-testing/tiny-random-LlamaForCausalLM",
+      "num_units_scored": 4572,
+      "mean_score": 0.3312816455234763,
+      "std_score": 0.1261363476549912,
+      "min_score": 0.04575,
+      "max_score": 0.51875,
+      "cohort_counts": {
+        "low": 798,
+        "medium+high": 2392,
+        "critical": 1382
+      }
+    }
+  ]
 }
